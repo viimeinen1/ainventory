@@ -22,7 +22,7 @@ public class aGUIInventory <T extends Enum<?>> extends aInventory {
      * 
      * @param <T> Enum if inventories in GUI
      * @param inventoryEnum enum value of this inventory.
-     * @return new {@link aGUIInventoryBuilder}
+     * @return new {@link aGUIInventory.Builder}
      */
     public static <T extends Enum<T>> Builder<T> builder(@NotNull T inventoryEnum) {
         return new Builder<T>(inventoryEnum);
