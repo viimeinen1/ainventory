@@ -470,7 +470,6 @@ public class aInventory implements InventoryHolder {
          * 
          * @param inventory Inventory that the item(s) will be set to.
          * @param slot slot number
-         * @return builder
          */
         public aItemBuilder(@NotNull aInventory inventory, @NotNull int slot) {
             this.inventory = inventory;
@@ -492,7 +491,6 @@ public class aInventory implements InventoryHolder {
          * 
          * @param inventory Inventory that the item(s) will be set to.
          * @param slots slot numbers
-         * @return builder
          */
         public aItemBuilder(@NotNull aInventory inventory, @NotNull Collection<Integer> slots) {
             this.inventory = inventory;
@@ -659,7 +657,7 @@ public class aInventory implements InventoryHolder {
          * 
          * If {@link String}, the string will be deserialized as minimessage.
          * 
-         * @param <R> {@link String} or {@link Component}
+         * @param <K> {@link String} or {@link Component}
          * @param name displayname of item(s)
          * @param italic if name should be italic (default true)
          * @return builder
