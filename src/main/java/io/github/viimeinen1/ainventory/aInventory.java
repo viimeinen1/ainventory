@@ -52,7 +52,7 @@ public class aInventory implements InventoryHolder {
     }
 
     /**
-     * Gui click function
+     * click function
      */
     @FunctionalInterface
     public static interface itemClickEvent {
@@ -87,7 +87,7 @@ public class aInventory implements InventoryHolder {
      * Inventory use requirement function
      */
     @FunctionalInterface
-    public static interface guiRequirementFunction {
+    public static interface requirementFunction {
         boolean run(HumanEntity player);
     }
 
@@ -124,7 +124,7 @@ public class aInventory implements InventoryHolder {
     public final Map<Integer, itemReloadFunction> itemReloads = new HashMap<>();
     private inventoryInitializationFunction initialization;
     private defaultClickAction defaultClickAction;
-    private guiRequirementFunction requirementFunction;
+    private requirementFunction requirementFunction;
 
     /**
      * Get {@link Inventory}
@@ -141,7 +141,7 @@ public class aInventory implements InventoryHolder {
      * 
      * Permission will be determined by:
      * - Checking if player {@link UUID} matches the owner of the inventory.
-     * - Running {@link guiRequirementFunction} linked to this inventory.
+     * - Running {@link requirementFunction} linked to this inventory.
      * 
      * Will also reload the inventory before it's openend.
      * 
@@ -327,7 +327,7 @@ public class aInventory implements InventoryHolder {
         defaultClickAction defaultClickAction;
         Integer size;
         Component title;
-        guiRequirementFunction requirementFunction;
+        requirementFunction requirementFunction;
 
         // for subclasses to override
         public abstract T getThis();
@@ -411,9 +411,9 @@ public class aInventory implements InventoryHolder {
          * 
          * If function returns false, all futher execution is blocked.
          * 
-         * @param requirementFunction {@link guiRequirementFunction}
+         * @param requirementFunction {@link requirementFunction}
          */
-        public T require(guiRequirementFunction requirementFunction) {
+        public T require(requirementFunction requirementFunction) {
             this.requirementFunction = requirementFunction;
             return getThis();
         }
@@ -718,7 +718,7 @@ public class aInventory implements InventoryHolder {
          * Using null will keep original function.
          * Use {@link aItemBuilder#removeSlotFuntion(boolean)} to remove slot function.
          * 
-         * @param slotFn {@link guiItemClickEvent}
+         * @param slotFn {@link itemClickEvent}
          * @return builder
          */
         public aItemBuilder function(@Nullable itemClickEvent slotFn) {
