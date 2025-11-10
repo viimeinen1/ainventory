@@ -1,10 +1,11 @@
 package io.github.viimeinen1.ainventory;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -18,6 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.ApiStatus.Internal;
 
 import io.papermc.paper.datacomponent.DataComponentType;
 import io.papermc.paper.datacomponent.DataComponentTypes;
@@ -26,6 +28,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
+/**
+ * Custom inventory with addinational features like reloading individual slots.
+ */
 public class aInventory implements InventoryHolder {
     
     /**
@@ -55,15 +60,15 @@ public class aInventory implements InventoryHolder {
     }
 
     /**
-     * Default click actions
+     * Default click actions that are run every time inventory is clicked.
      */
     @FunctionalInterface
-    public static interface defaultGuiClickAction {
+    public static interface defaultClickAction {
         void run(InventoryClickEvent event);
     }
 
     /**
-     * Initializing inventory
+     * Inventory initialization function.
      */
     @FunctionalInterface
     public static interface inventoryInitializationFunction {
@@ -71,7 +76,7 @@ public class aInventory implements InventoryHolder {
     }
 
     /**
-     * Item reload function
+     * Single item reload function
      */
     @FunctionalInterface
     public static interface itemReloadFunction {
@@ -86,25 +91,61 @@ public class aInventory implements InventoryHolder {
         boolean run(HumanEntity player);
     }
 
-    public static final class Messages {
+    /**
+     * Messages of inventory.
+     */
+    public final class Messages {
         public static final String NO_OPEN_PERMISSION = "<red>You don't have permission to open this inventory!";
         public static final String NO_USE_PERMISSION = "<red>You don't have permission to use this inventory!";
     }
 
+    /**
+     * {@link Inventory} of this aInventory.
+     * 
+     * Modify this if more control is needed.
+     */
     public final Inventory inventory;
+
+    /**
+     * Owner of the inventory.
+     * 
+     * If set, no other player can open or use the inventory.
+     */
     public UUID owner;
+
     private final Map<Integer, guiItemClickEvent> slotFunctions = new HashMap<>();
     private final Map<Integer, itemReloadFunction> itemReloads = new HashMap<>();
     private inventoryInitializationFunction initialization;
-    private defaultGuiClickAction defatulGuiItemAction;
+    private defaultClickAction defaultClickAction;
     private guiRequirementFunction requirementFunction;
 
+    /**
+     * Get {@link Inventory}
+     */
     @Override
     public Inventory getInventory() {
         return inventory;
     }
 
+    /**
+     * Open inventory for player.
+     * 
+     * Will send {@link Messages#NO_OPEN_PERMISSION} if no permission to open inventory.
+     * 
+     * Permission will be determined by:
+     * - Checking if player {@link UUID} matches the owner of the inventory.
+     * - Running {@link guiRequirementFunction} linked to this inventory.
+     * 
+     * Will also reload the inventory before it's openend.
+     * 
+     * @param player Who the inventory will be opened to.
+     * @return true if inventory was opened for player.
+     */
     public boolean openInventory(@NotNull HumanEntity player) {
+        if (owner != null && !owner.equals(player.getUniqueId())) {
+            player.sendMessage(MiniMessage.miniMessage().deserialize(Messages.NO_OPEN_PERMISSION));
+            return false;
+        }
         if (requirementFunction != null && !requirementFunction.run(player)) {
             player.sendMessage(MiniMessage.miniMessage().deserialize(Messages.NO_OPEN_PERMISSION));
             return false;
@@ -115,7 +156,14 @@ public class aInventory implements InventoryHolder {
     }
 
     /**
-     * Clears inventory, Re-runs initialization function and updates inventory to it's viewers.
+     * Re-Initialize inventory.
+     * 
+     * Will:
+     * - clear inventory.
+     * - run initialization function again.
+     * - update inventory to all it's viewers.
+     * 
+     * @return {@link aInventory}
      */
     public aInventory initialize() {
         // clear inventory and functions so there isn't any previous items left from last initialization
@@ -128,7 +176,9 @@ public class aInventory implements InventoryHolder {
     }
 
     /**
-     * Runs reload function of all slots.
+     * Runs reload function of all slots in the inventory.
+     * 
+     * @return {@link aInventory}
      */
     public aInventory reload() {
         itemReloads.forEach((slot, reloadFn) -> {
@@ -142,12 +192,14 @@ public class aInventory implements InventoryHolder {
      * Runs reload function for specific slot.
      * 
      * @param slot slot to run reload on
+     * @return {@link aInventory}
      */
     public aInventory reload(@NotNull Integer slot) {
         itemReloads.get(slot).run(new aItemBuilder(this, slot));
         return this;
     }
 
+    @Internal
     public aInventory onInventoryClick(@NotNull InventoryClickEvent event) {
         if (requirementFunction != null && !requirementFunction.run(event.getWhoClicked())) {
             event.setCancelled(true);
@@ -155,8 +207,8 @@ public class aInventory implements InventoryHolder {
             return this;
         }
 
-        if (defatulGuiItemAction != null) {
-            defatulGuiItemAction.run(event);
+        if (defaultClickAction != null) {
+            defaultClickAction.run(event);
         }
 
         if (slotFunctions.containsKey(event.getSlot()) && slotFunctions.get(event.getSlot()) != null) {
@@ -166,6 +218,7 @@ public class aInventory implements InventoryHolder {
         return this;
     }
 
+    @Internal
     public aInventory onInventoryTransfer(@NotNull InventoryClickEvent event) {
         if (requirementFunction != null && !requirementFunction.run(event.getWhoClicked())) {
             event.setCancelled(true);
@@ -173,8 +226,8 @@ public class aInventory implements InventoryHolder {
             return this;
         }
 
-        if (defatulGuiItemAction != null) {
-            defatulGuiItemAction.run(event);
+        if (defaultClickAction != null) {
+            defaultClickAction.run(event);
         }
 
         return this;
@@ -182,6 +235,8 @@ public class aInventory implements InventoryHolder {
 
     /**
      * Update inventory for all it's viewers.
+     * 
+     * @return {@link aInventory}
      */
     public aInventory updateInventory() {
         this.inventory.getViewers().forEach(entity -> {
@@ -192,33 +247,61 @@ public class aInventory implements InventoryHolder {
         return this;
     }
 
+    /**
+     * Create new {@link aDefaultInventoryBuilder} for building new inventory.
+     * 
+     * @return new {@link aDefaultInventoryBuilder}
+     */
     public static aDefaultInventoryBuilder InventoryBuilder() {
         return new aDefaultInventoryBuilder();
     }
 
+    /**
+     * Create new {@link aInventory}.
+     * 
+     * Prefer {@link aInventoryBuilder#build()} to build new inventory.
+     * 
+     * @param builder extends {@link aInventoryBuilder}
+     */
+    @Internal
     public aInventory(aInventoryBuilder<?, ?> builder) {
         this.owner = builder.owner;
-        this.defatulGuiItemAction = builder.defaultGuiItemAction;
+        this.defaultClickAction = builder.defaultClickAction;
         this.initialization = builder.initialization;
         this.requirementFunction = builder.requirementFunction;
 
         if (builder.size == null) {
-            this.inventory = Bukkit.createInventory(this, 27, builder.name);
+            this.inventory = Bukkit.createInventory(this, INVENTORY_SIZE.CHEST_9x3.size(), builder.title);
         } else {
-            this.inventory = Bukkit.createInventory(this, builder.size, builder.name);
+            this.inventory = Bukkit.createInventory(this, builder.size, builder.title);
         }
 
         initialize();
         updateInventory(); // just in case someone has the inv open for some unforseen reason
     }
 
+    /**
+     * Default inventory builder.
+     * 
+     * Use {@link aGUIInventory} for GUI inventories.
+     */
     public static class aDefaultInventoryBuilder extends aInventoryBuilder<aDefaultInventoryBuilder, aInventory> {
 
+        /**
+         * Get the builder.
+         */
         @Override
         public aDefaultInventoryBuilder getThis() {
             return this;
         }
 
+        /**
+         * Build new {@link aInventory} with the set details.
+         * 
+         * Will also initialize the inventory.
+         * 
+         * @return new {@link aInventory}
+         */
         @Override
         public aInventory build() {
             return new aInventory(this);
@@ -227,44 +310,88 @@ public class aInventory implements InventoryHolder {
     }
 
     /**
-     * Custom inventory builder
+     * Custom inventory builder.
      */
     public static abstract class aInventoryBuilder <T extends aInventoryBuilder<T, K>, K extends aInventory> {
         UUID owner;
         inventoryInitializationFunction initialization;
-        defaultGuiClickAction defaultGuiItemAction;
+        defaultClickAction defaultClickAction;
         Integer size;
-        Component name;
+        Component title;
         guiRequirementFunction requirementFunction;
 
         // for subclasses to override
         public abstract T getThis();
         public abstract K build();
 
+        /**
+         * Set initialization function for the inventory.
+         * 
+         * The function can be called later with {@link aInventory#initialize()}.
+         * 
+         * @param fn {@link inventoryInitializationFunction}
+         * @return builder
+         */
         public T initialization(inventoryInitializationFunction fn) {
             this.initialization = fn;
             return getThis();
         }
 
-        public T defaultAction(@NotNull defaultGuiClickAction fn) {
-            this.defaultGuiItemAction = fn;
+        /**
+         * Function that will be ran every time inventory is clicked.
+         * 
+         * @param fn {@link defaultClickAction}
+         * @return builder
+         */
+        public T defaultAction(@NotNull defaultClickAction fn) {
+            this.defaultClickAction = fn;
             return getThis();
         }
 
+        /**
+         * Set size of the inventory.
+         * 
+         * @param size {@link INVENTORY_SIZE}
+         * @return builder
+         */
         public T size(INVENTORY_SIZE size) {
             this.size = size.size();
             return getThis();
         }
 
-        public <R> T name(R name) {
-            if (name instanceof Component component) {
-                this.name = component;
-            } else if (name instanceof String txt) {
-                this.name = MiniMessage.miniMessage().deserialize(txt);
+        /**
+         * Set the title of the inventory.
+         * 
+         * Accepts both {@link String} and {@link Component}.
+         * Giving object with other types will fail silently.
+         * 
+         * If {@link String}, the string will be deserialized as minimessage.
+         * 
+         * @param <R> {@link String} or {@link Component}
+         * @param title title that will be set as the inventory title.
+         * @return builder
+         */
+        public <R> T title(R title) {
+            switch (title) {
+                case Component component -> {
+                    this.title = component;
+                }
+                case String txt -> {
+                    this.title = MiniMessage.miniMessage().deserialize(txt);
+                }
+                default -> {}
             }
             return getThis();
         }
 
+        /**
+         * Set owner of the inventory.
+         * 
+         * Setting owner of the inventory will restrict it's usage to only it's owner.
+         * 
+         * @param owner {@link UUID} of the owner.
+         * @return builder
+         */
         public T owner(UUID owner) {
             this.owner = owner;
             return getThis();
@@ -275,7 +402,7 @@ public class aInventory implements InventoryHolder {
          * 
          * If function returns false, all futher execution is blocked.
          * 
-         * @param requirementFunction function
+         * @param requirementFunction {@link guiRequirementFunction}
          */
         public T require(guiRequirementFunction requirementFunction) {
             this.requirementFunction = requirementFunction;
@@ -286,20 +413,20 @@ public class aInventory implements InventoryHolder {
     /**
      * Modify slot.
      * 
-     * @param slot
-     * @param material
+     * @param slot slot number
+     * @return new item builder
      */
     public aItemBuilder ItemBuilder(@NotNull int slot) {
         return new aItemBuilder(this, slot);
     }
 
     /**
-     * Modify slots.
+     * Modify multiple slots.
      * 
-     * All parameters will be taken from the first item in the list and copied to all slots.
+     * All previous parameters will be taken from the first item in the list and copied to all slots. (name, lore, amount, material etc.)
      * 
-     * @param slots
-     * @param material
+     * @param slots slot numbers
+     * @return new item builder
      */
     public aItemBuilder ItemBuilder(@NotNull Collection<Integer> slots) {
         return new aItemBuilder(this, slots);
@@ -323,23 +450,27 @@ public class aInventory implements InventoryHolder {
     }
 
     /**
-     * Custom inventory item builder
+     * Item builder for {@link aInventory}. Supports reload functions.
      */
     public static class aItemBuilder {
         aInventory inventory;
         guiItemClickEvent slotFn;
         ItemStack item;
-        List<Integer> slots = new ArrayList<>();
+        Set<Integer> slots = new HashSet<>();
         itemReloadFunction reloadFn;
         boolean removeReloadFunction = false;
         boolean removeSlotFuntion = false;
 
         /**
-         * Modify slot.
+         * Modify single slot.
          * 
-         * @param inventory
-         * @param slot
-         * @param material
+         * If slot already exists, the item will copy it's values.
+         * 
+         * Prefer {@link aInventory#ItemBuilder(int)}
+         * 
+         * @param inventory Inventory that the item(s) will be set to.
+         * @param slot slot number
+         * @return builder
          */
         public aItemBuilder(@NotNull aInventory inventory, @NotNull int slot) {
             this.inventory = inventory;
@@ -350,7 +481,6 @@ public class aInventory implements InventoryHolder {
             } else {
                 this.item = this.item.clone();
             }
-            this.slotFn = inventory.slotFunctions.get(slot);
         }
 
         /**
@@ -358,8 +488,11 @@ public class aInventory implements InventoryHolder {
          * 
          * All previous parameters will be taken from the first item in the list.
          * 
-         * @param inventory
-         * @param slots
+         * Prefer {@link aInventory#ItemBuilder(Collection)}
+         * 
+         * @param inventory Inventory that the item(s) will be set to.
+         * @param slot slot numbers
+         * @return builder
          */
         public aItemBuilder(@NotNull aInventory inventory, @NotNull Collection<Integer> slots) {
             this.inventory = inventory;
@@ -370,13 +503,13 @@ public class aInventory implements InventoryHolder {
             } else {
                 this.item = this.item.clone();
             }
-            this.slotFn = inventory.slotFunctions.get(slots.iterator().next());
         }
 
         /**
-         * Add slot that this item will be copied to.
+         * Add slot that the item(s) will be copied to.
          * 
-         * @param slot
+         * @param slot slot number
+         * @return builder
          */
         public aItemBuilder addSlot(@NotNull Integer slot) {
             this.slots.add(slot);
@@ -384,9 +517,10 @@ public class aInventory implements InventoryHolder {
         }
 
         /**
-         * Add slots that this item will be copied to.
+         * Add multiple slots that this item(s) will be copied to.
          * 
-         * @param slot
+         * @param slot slot numbers
+         * @return builder
          */
         public aItemBuilder addSlot(@NotNull Collection<Integer> slots) {
             this.slots.addAll(slots);
@@ -394,11 +528,12 @@ public class aInventory implements InventoryHolder {
         }
 
         /**
-         * Set the underlying item.
+         * Replace item in the builder.
          * 
          * This will discard all item related values added before.
          * 
-         * @param item
+         * @param item {@link ItemStack}
+         * @return builder
          */
         public aItemBuilder setItem(@NotNull ItemStack item) {
             this.item = item.clone();
@@ -406,25 +541,30 @@ public class aInventory implements InventoryHolder {
         }
 
         /**
-         * Get the custominventory the item will be added to.
+         * Get {@link aInventory} the item(s) will be set to.
+         * 
+         * @return the {@link aInventory} the items will be set to.
          */
         public aInventory getInventory() {
             return inventory;
         }
 
-        /**
-         * Get slots that this item will be copied to.
-         */
-        public List<Integer> getSlots() {
+         /**
+          * Get slots that item(s) will be copied to.
+          * 
+          * @return {@link List} of slot numbers
+          */
+        public Set<Integer> getSlots() {
             return slots;
         }
 
         /**
          * If slot Function should be removed.
          * 
-         * Will be ignored if new slot function is set.
+         * Will be ignored if new slot function is added.
          * 
-         * @param removeSlotFuntion
+         * @param removeSlotFuntion boolean if slot function should be removed.
+         * @return builder
          */
         public aItemBuilder removeSlotFuntion(boolean removeSlotFuntion) {
             this.removeSlotFuntion = removeSlotFuntion;
@@ -434,9 +574,10 @@ public class aInventory implements InventoryHolder {
         /**
          * If reload function should be removed.
          * 
-         * Will be ignored if new reload function is set.
+         * Will be ignored if new reload function is added.
          * 
-         * @param removeReloadFunction
+         * @param removeReloadFunction boolean if reload function should be removed.
+         * @return builder
          */
         public aItemBuilder removeReloadFunction(boolean removeReloadFunction) {
             this.removeReloadFunction = removeReloadFunction;
@@ -444,10 +585,10 @@ public class aInventory implements InventoryHolder {
         }
 
         /**
-         * Set material of the item.
-         * May cause data loss, so use as early as possible.
+         * Set the type of the item(s).
          * 
-         * @param material
+         * @param material new {@link Material} for item(s).
+         * @return builder
          */
         public aItemBuilder material(@NotNull Material material) {
             if (this.item == null || this.item.getType().equals(Material.AIR)) {
@@ -469,9 +610,10 @@ public class aInventory implements InventoryHolder {
         }
 
         /**
-         * Set amount of item.
+         * Set amount for item(s).
          * 
-         * @param amount
+         * @param amount amount for item(s).
+         * @return builder
          */
         public aItemBuilder amount(@NotNull Integer amount) {
             this.item.setAmount(amount);
@@ -479,24 +621,29 @@ public class aInventory implements InventoryHolder {
         }
 
         /**
-         * Clear itembuilder completely.
-         * Sets material to air, so use {@link ItemBuilder#material(Material)} again.
+         * Clear item(s) completely.
+         * Material will be set to AIR.
+         * 
+         * @return builder
          */
         public aItemBuilder clear() {
             item = ItemStack.of(Material.AIR);
             slotFn = null;
             reloadFn = null;
+            removeReloadFunction = true;
+            removeSlotFuntion = true;
             return this;
         }
 
         /**
-         * Item reload function.
+         * Reload function.
          * The function will be called every time inventory is opened.
          * 
-         * Using null will not change the original function. 
+         * Using null will cause the function to not change.
          * Use {@link ItemBuilder#removeReloadFunction(boolean)} to remove reload function.
          * 
          * @param fn reload function
+         * @return builder
          */
         public aItemBuilder reload(@Nullable itemReloadFunction fn) {
             this.reloadFn = fn;
@@ -504,13 +651,16 @@ public class aInventory implements InventoryHolder {
         }
 
         /**
-         * Displayname of item.
-         * Using null will do nothing.
+         * Set displayname of item(s).
+         * Using null will retain old displayname.
          * 
-         * Accepts both String and Component.
-         * Other types will not be set.
+         * Accepts both {@link String} and {@link Component}.
+         * Giving object with other types will fail silently.
          * 
-         * @param name name of item
+         * If {@link String}, the string will be deserialized as minimessage.
+         * 
+         * @param <R> {@link String} or {@link Component}
+         * @param name displayname of item(s)
          * @param italic if name should be italic (default true)
          * @return builder
          */
@@ -526,10 +676,10 @@ public class aInventory implements InventoryHolder {
         }
 
         /**
-         * Lore of item.
+         * Set lore of item(s).
          * Using null will do nothing.
          * 
-         * Accepts both String and Component.
+         * Accepts both {@link String} and {@link Component}.
          * If other types are used, those lines will be skipped.
          * 
          * @param <K> {@link String} or {@link Component}
@@ -537,7 +687,6 @@ public class aInventory implements InventoryHolder {
          * @param italic if lore should be italic
          * @return builder
          */
-
         public <K> aItemBuilder lore(@Nullable Collection<K> loreLines, @NotNull boolean italic) {
             if (loreLines == null) {
                 return this;
@@ -557,12 +706,13 @@ public class aInventory implements InventoryHolder {
         }
 
         /**
-         * Function that is run when item is clicked.
+         * Function that is run when item(s) is clicked.
          * 
          * Using null will keep original function.
          * Use {@link ItemBuilder#removeSlotFuntion(boolean)} to remove slot function.
          * 
-         * @param slotFn function
+         * @param slotFn {@link guiItemClickEvent}
+         * @return builder
          */
         public aItemBuilder function(@Nullable guiItemClickEvent slotFn) {
             this.slotFn = slotFn;
@@ -570,10 +720,11 @@ public class aInventory implements InventoryHolder {
         }
 
         /**
-         * Set data component to item.
+         * Set data component to item(s).
          * 
          * @param type component type
          * @param value component value
+         * @return builder
          */
         public <K> aItemBuilder setData(@NotNull DataComponentType.Valued<K> type, @NotNull K value) {
             item.setData(type, value);
@@ -581,8 +732,10 @@ public class aInventory implements InventoryHolder {
         }
 
         /**
-         * Sets item to linked inventory.
+         * Apply item(s) to linked inventory.
          * If not called, all changes to builder will be discarded.
+         * 
+         * @return {@link aInventory} that the item(s) were set to.
          */
         public aInventory build() {
             inventory.buildItem(this);
@@ -592,7 +745,7 @@ public class aInventory implements InventoryHolder {
 
     /**
      * Initialize listener for aInventory.
-     * Without initializing the listener, the slot functions will not work.
+     * Without initializing the listener, the click functions will not work.
      * 
      * @param plugin {@link JavaPlugin} that the listener will be listed for.
      */
