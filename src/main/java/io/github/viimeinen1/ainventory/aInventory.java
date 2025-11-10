@@ -491,7 +491,7 @@ public class aInventory implements InventoryHolder {
          * Prefer {@link aInventory#ItemBuilder(Collection)}
          * 
          * @param inventory Inventory that the item(s) will be set to.
-         * @param slot slot numbers
+         * @param slots slot numbers
          * @return builder
          */
         public aItemBuilder(@NotNull aInventory inventory, @NotNull Collection<Integer> slots) {
@@ -519,7 +519,7 @@ public class aInventory implements InventoryHolder {
         /**
          * Add multiple slots that this item(s) will be copied to.
          * 
-         * @param slot slot numbers
+         * @param slots slot numbers
          * @return builder
          */
         public aItemBuilder addSlot(@NotNull Collection<Integer> slots) {
@@ -640,7 +640,7 @@ public class aInventory implements InventoryHolder {
          * The function will be called every time inventory is opened.
          * 
          * Using null will cause the function to not change.
-         * Use {@link ItemBuilder#removeReloadFunction(boolean)} to remove reload function.
+         * Use {@link aItemBuilder#removeReloadFunction(boolean)} to remove reload function.
          * 
          * @param fn reload function
          * @return builder
@@ -709,7 +709,7 @@ public class aInventory implements InventoryHolder {
          * Function that is run when item(s) is clicked.
          * 
          * Using null will keep original function.
-         * Use {@link ItemBuilder#removeSlotFuntion(boolean)} to remove slot function.
+         * Use {@link aItemBuilder#removeSlotFuntion(boolean)} to remove slot function.
          * 
          * @param slotFn {@link guiItemClickEvent}
          * @return builder
