@@ -12,7 +12,7 @@ public class aGUIInventory <T extends Enum<?>> extends aInventory {
      */
     public final T inventoryEnum;
 
-    private aGUIInventory(aGUIInventoryBuilder<T> builder) {
+    private aGUIInventory(Builder<T> builder) {
         super(builder);
         this.inventoryEnum = builder.inventoryEnum;
     }
@@ -24,14 +24,14 @@ public class aGUIInventory <T extends Enum<?>> extends aInventory {
      * @param inventoryEnum enum value of this inventory.
      * @return new {@link aGUIInventoryBuilder}
      */
-    public static <T extends Enum<T>> aGUIInventoryBuilder<T> InventoryBuilder(@NotNull T inventoryEnum) {
-        return new aGUIInventoryBuilder<T>(inventoryEnum);
+    public static <T extends Enum<T>> Builder<T> builder(@NotNull T inventoryEnum) {
+        return new Builder<T>(inventoryEnum);
     }
 
     /**
      * Inventory builder for GUIs
      */
-    public static final class aGUIInventoryBuilder <T extends Enum<?>> extends aInventoryBuilder<aGUIInventoryBuilder<T>, aGUIInventory<T>> {
+    public static final class Builder <T extends Enum<?>> extends aInventory.Builder<Builder<T>, aGUIInventory<T>> {
 
         final T inventoryEnum;
 
@@ -40,7 +40,7 @@ public class aGUIInventory <T extends Enum<?>> extends aInventory {
          * 
          * @param inventoryEnum enum value of this inventory
          */
-        public aGUIInventoryBuilder(@NotNull T inventoryEnum) {
+        public Builder(@NotNull T inventoryEnum) {
             this.inventoryEnum = inventoryEnum;
         }
 
@@ -48,7 +48,7 @@ public class aGUIInventory <T extends Enum<?>> extends aInventory {
          * Get this builder.
          */
         @Override
-        public aGUIInventoryBuilder<T> getThis() {
+        public Builder<T> getThis() {
             return this;
         }
 

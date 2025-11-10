@@ -257,23 +257,23 @@ public class aInventory implements InventoryHolder {
     }
 
     /**
-     * Create new {@link aDefaultInventoryBuilder} for building new inventory.
+     * Create new {@link aInventory.DefaultBuilder} for building new inventory.
      * 
-     * @return new {@link aDefaultInventoryBuilder}
+     * @return new {@link aInventory.DefaultBuilder}
      */
-    public static aDefaultInventoryBuilder InventoryBuilder() {
-        return new aDefaultInventoryBuilder();
+    public static DefaultBuilder builder() {
+        return new DefaultBuilder();
     }
 
     /**
      * Create new {@link aInventory}.
      * 
-     * Prefer {@link aInventoryBuilder#build()} to build new inventory.
+     * Prefer {@link aInventory.Builder#build()} to build new inventory.
      * 
-     * @param builder extends {@link aInventoryBuilder}
+     * @param builder extends {@link aInventory.Builder}
      */
     @Internal
-    public aInventory(aInventoryBuilder<?, ?> builder) {
+    public aInventory(Builder<?, ?> builder) {
         this.owner = builder.owner;
         this.defaultClickAction = builder.defaultClickAction;
         this.initialization = builder.initialization;
@@ -294,13 +294,13 @@ public class aInventory implements InventoryHolder {
      * 
      * Use {@link aGUIInventory} for GUI inventories.
      */
-    public static class aDefaultInventoryBuilder extends aInventoryBuilder<aDefaultInventoryBuilder, aInventory> {
+    public static class DefaultBuilder extends Builder<DefaultBuilder, aInventory> {
 
         /**
          * Get the builder.
          */
         @Override
-        public aDefaultInventoryBuilder getThis() {
+        public DefaultBuilder getThis() {
             return this;
         }
 
@@ -321,7 +321,7 @@ public class aInventory implements InventoryHolder {
     /**
      * Custom inventory builder.
      */
-    public static abstract class aInventoryBuilder <T extends aInventoryBuilder<T, K>, K extends aInventory> {
+    public abstract static class Builder <T extends Builder<T, K>, K extends aInventory> {
         UUID owner;
         inventoryInitializationFunction initialization;
         defaultClickAction defaultClickAction;

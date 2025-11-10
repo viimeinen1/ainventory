@@ -27,7 +27,7 @@ Creating single inventory
 
 int counter = 0;
 
-aInventory ainventory = aInventory.inventoryBuilder() // create new builder
+aInventory ainventory = aInventory.builder() // create new builder
     .size(INVENTORY_SIZE.CHEST_9x1) // set inventory size to 9x1
     .title("<gold>Example inventory") // set inventory title (also accepts components)
     .require(player -> player.isOp() || player.hasPermission("example.admin")) // require player to be OP or have permission "example.admin" to open or use inventory.
@@ -128,7 +128,7 @@ public enum GUI_INVENTORY { // all gui inventories
 
 aGUI<GUI_INVENTORY> agui = new aGUI<>(GUI_INVENTORY.class); // create new gui
 
-agui.putInventory(aGUIInventory.InventoryBuilder(GUI_INVENTORY.MAIN) // define MAIN inventory to the gui
+agui.putInventory(aGUIInventory.builder(GUI_INVENTORY.MAIN) // define MAIN inventory to the gui
     .size(INVENTORY_SIZE.CHEST_9x3)
     .initialization(inventory -> {
         // initialization of items here
@@ -137,7 +137,7 @@ agui.putInventory(aGUIInventory.InventoryBuilder(GUI_INVENTORY.MAIN) // define M
 
 
 // another way of defining inventories
-aGUIInventory confirmExitInventory = aGUIInventory.InventoryBuilder(GUI_INVENTORY.CONFIRM_EXIT) // create CONFIRM_EXIT inventory
+aGUIInventory confirmExitInventory = aGUIInventory.builder(GUI_INVENTORY.CONFIRM_EXIT) // create CONFIRM_EXIT inventory
     // other inventory settings
     .build();
 
