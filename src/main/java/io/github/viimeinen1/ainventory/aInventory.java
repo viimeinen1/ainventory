@@ -55,7 +55,7 @@ public class aInventory implements InventoryHolder {
      * Gui click function
      */
     @FunctionalInterface
-    public static interface guiItemClickEvent {
+    public static interface itemClickEvent {
         void run(InventoryClickEvent event);
     }
 
@@ -113,8 +113,15 @@ public class aInventory implements InventoryHolder {
      */
     public UUID owner;
 
-    private final Map<Integer, guiItemClickEvent> slotFunctions = new HashMap<>();
-    private final Map<Integer, itemReloadFunction> itemReloads = new HashMap<>();
+    /**
+     * All slot functions of this inventory.
+     */
+    public final Map<Integer, itemClickEvent> clickFunctions = new HashMap<>();
+
+    /**
+     * All reload functions of this inventory.
+     */
+    public final Map<Integer, itemReloadFunction> itemReloads = new HashMap<>();
     private inventoryInitializationFunction initialization;
     private defaultClickAction defaultClickAction;
     private guiRequirementFunction requirementFunction;
@@ -168,10 +175,10 @@ public class aInventory implements InventoryHolder {
     public aInventory initialize() {
         // clear inventory and functions so there isn't any previous items left from last initialization
         inventory.clear();
-        slotFunctions.clear();
+        clickFunctions.clear();
         itemReloads.clear();
         initialization.run(this);
-        updateInventory();
+        update();
         return this;
     }
 
@@ -185,6 +192,7 @@ public class aInventory implements InventoryHolder {
             if (reloadFn == null) {return;}
             reloadFn.run(new aItemBuilder(this, slot));
         });
+        update();
         return this;
     }
 
@@ -196,6 +204,7 @@ public class aInventory implements InventoryHolder {
      */
     public aInventory reload(@NotNull Integer slot) {
         itemReloads.get(slot).run(new aItemBuilder(this, slot));
+        update();
         return this;
     }
 
@@ -211,8 +220,8 @@ public class aInventory implements InventoryHolder {
             defaultClickAction.run(event);
         }
 
-        if (slotFunctions.containsKey(event.getSlot()) && slotFunctions.get(event.getSlot()) != null) {
-            slotFunctions.get(event.getSlot()).run(event);
+        if (clickFunctions.containsKey(event.getSlot()) && clickFunctions.get(event.getSlot()) != null) {
+            clickFunctions.get(event.getSlot()).run(event);
         }
 
         return this;
@@ -238,7 +247,7 @@ public class aInventory implements InventoryHolder {
      * 
      * @return {@link aInventory}
      */
-    public aInventory updateInventory() {
+    public aInventory update() {
         this.inventory.getViewers().forEach(entity -> {
             if (entity instanceof Player pl) {
                 pl.updateInventory();
@@ -277,7 +286,7 @@ public class aInventory implements InventoryHolder {
         }
 
         initialize();
-        updateInventory(); // just in case someone has the inv open for some unforseen reason
+        update(); // just in case someone has the inv open for some unforseen reason
     }
 
     /**
@@ -440,9 +449,9 @@ public class aInventory implements InventoryHolder {
                 this.itemReloads.remove(slot);
             }
             if (builder.slotFn != null) {
-                    this.slotFunctions.put(slot, builder.slotFn);
+                    this.clickFunctions.put(slot, builder.slotFn);
             } else if (builder.removeSlotFuntion) {
-                this.slotFunctions.remove(slot);
+                this.clickFunctions.remove(slot);
             }
             this.inventory.setItem(slot, builder.item);
         });
@@ -454,7 +463,7 @@ public class aInventory implements InventoryHolder {
      */
     public static class aItemBuilder {
         aInventory inventory;
-        guiItemClickEvent slotFn;
+        itemClickEvent slotFn;
         ItemStack item;
         Set<Integer> slots = new HashSet<>();
         itemReloadFunction reloadFn;
@@ -712,7 +721,7 @@ public class aInventory implements InventoryHolder {
          * @param slotFn {@link guiItemClickEvent}
          * @return builder
          */
-        public aItemBuilder function(@Nullable guiItemClickEvent slotFn) {
+        public aItemBuilder function(@Nullable itemClickEvent slotFn) {
             this.slotFn = slotFn;
             return this;
         }
