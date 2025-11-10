@@ -54,7 +54,7 @@ aInventory ainventory = aInventory.builder() // create new builder
             )
             .function(event -> { // create function that gets run when item is clicked
                 // no need to cancel event, because it was done in defaultActions
-                Bukkit.getScheduler().runTask(null, () -> event.getWhoClicked().closeInventory()); // close player's inventory on next tick
+                Bukkit.getScheduler().runTask(plugin, () -> event.getWhoClicked().closeInventory()); // close player's inventory on next tick
             })
             .build(); // add built item(s) to inventory
 
