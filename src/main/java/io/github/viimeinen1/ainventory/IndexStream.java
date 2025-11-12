@@ -1,0 +1,99 @@
+package io.github.viimeinen1.ainventory;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Stream;
+
+/**
+ * Helper to make streaming values to inventory easier.
+ */
+public class IndexStream {
+
+    /**
+     * Convert collection to stream with {@link StreamValue}s.
+     * 
+     * Order might be random.
+     * 
+     * Usage:
+     * aValueStream.toStream(collection).forEach(val -> {val.index(); val.value()});
+     * 
+     * @param <T> Collection value type
+     * @param collection Collection
+     * @return Stream of {@link StreamValue} with index and value
+     */
+    public static <T> Stream<StreamValue<T>> toStream(Collection<T> collection) {
+        IndexedCollection<T> streamable = new IndexedCollection<>();
+        collection.forEach(val -> {
+            streamable.add(val);
+        });
+        return streamable.values.stream();
+    }
+
+    /**
+     * Helper class to index values.
+     */
+    private static class IndexedCollection<T> {
+        private int i = 0;
+        public final Set<StreamValue<T>> values = new HashSet<>();
+
+        /***
+         * Add value to collection.
+         * 
+         * Will assign value an index in order.
+         * 
+         * @param value
+         */
+        public void add(T value) {
+            values.add(new StreamValue<>(i, value));
+            i++;
+        }
+    }
+
+    /**
+     * Stream value with index and value.
+     */
+    public static class StreamValue<T> {
+        public final int i;
+        public final T value;
+
+        /**
+         * Get index of value
+         * 
+         * @return index of value
+         */
+        public int i() {return i;}
+
+        /**
+         * Get index of value
+         * 
+         * @return index of value
+         */
+        public int index() {return i;}
+
+        /**
+         * Get value
+         * 
+         * @return value
+         */
+        public T val() {return value;}
+
+        /**
+         * Get value
+         * 
+         * @return value
+         */
+        public T value() {return value;}
+
+        /**
+         * Create new StreamValue
+         * 
+         * @param i index
+         * @param value value
+         */
+        public StreamValue(int i, T value) {
+            this.i = i;
+            this.value = value;
+        }
+    }
+}
