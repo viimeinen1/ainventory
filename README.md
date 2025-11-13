@@ -14,7 +14,7 @@ The dependency can be seen at https://central.sonatype.com/artifact/io.github.vi
 build.gradle.kts
 ```java
 dependencies (
-    implementation("io.github.viimeinen1.ainventory:aInventory:1.1.0")
+    implementation("io.github.viimeinen1.ainventory:aInventory:1.2.0")
 )
 ```
 
