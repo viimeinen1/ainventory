@@ -4,6 +4,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 
 public class aInventoryListener implements Listener {
@@ -19,6 +21,22 @@ public class aInventoryListener implements Listener {
             return;
         }
         inventory.onInventoryClick(event);
+    }
+
+    @EventHandler
+    public static void onInventoryOpen(InventoryOpenEvent event) {
+        Inventory inv = event.getInventory();
+        if (!(inv.getHolder(false) instanceof aInventory inventory)) {return;}
+        inventory.onInventoryOpen(event);
+    }
+
+    @EventHandler
+    public static void onInventoryClose(InventoryCloseEvent event) {
+        // filter out unrelated actions
+        if (event.getReason().equals(InventoryCloseEvent.Reason.PLUGIN) || event.getReason().equals(InventoryCloseEvent.Reason.OPEN_NEW)) {return;}
+        Inventory inv = event.getInventory();
+        if (!(inv.getHolder(false) instanceof aInventory inventory)) {return;}
+        inventory.onInventoryClose(event);
     }
 
 }

@@ -13,6 +13,8 @@ import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -55,24 +57,16 @@ public class aInventory implements InventoryHolder {
      * click function
      */
     @FunctionalInterface
-    public static interface itemClickEvent {
+    public static interface itemClickFunction {
         void run(InventoryClickEvent event);
     }
 
     /**
-     * Default click actions that are run every time inventory is clicked.
+     * Generic inventory function.
      */
     @FunctionalInterface
-    public static interface defaultClickAction {
-        void run(InventoryClickEvent event);
-    }
-
-    /**
-     * Inventory initialization function.
-     */
-    @FunctionalInterface
-    public static interface inventoryInitializationFunction {
-        void run(aInventory customInventory);
+    public static interface inventoryFunction {
+        void run(aInventory aInventory);
     }
 
     /**
@@ -89,6 +83,19 @@ public class aInventory implements InventoryHolder {
     @FunctionalInterface
     public static interface requirementFunction {
         boolean run(HumanEntity player);
+    }
+
+    @FunctionalInterface
+    public static interface inventoryOpenFunction {
+        void run(InventoryOpenEvent event);
+    }
+
+    /**
+     * Inventory close function
+     */
+    @FunctionalInterface
+    public static interface inventoryCloseFunction {
+        void run(InventoryCloseEvent event);
     }
 
     /**
@@ -116,15 +123,17 @@ public class aInventory implements InventoryHolder {
     /**
      * All slot functions of this inventory.
      */
-    public final Map<Integer, itemClickEvent> clickFunctions = new HashMap<>();
+    public final Map<Integer, itemClickFunction> clickFunctions = new HashMap<>();
 
     /**
      * All reload functions of this inventory.
      */
     public final Map<Integer, itemReloadFunction> itemReloads = new HashMap<>();
-    private inventoryInitializationFunction initialization;
-    private defaultClickAction defaultClickAction;
+    private inventoryFunction initialization;
+    private itemClickFunction defaultClickAction;
     private requirementFunction requirementFunction;
+    private inventoryOpenFunction openFunction;
+    private inventoryCloseFunction closeFunction;
 
     /**
      * Get {@link Inventory}
@@ -209,11 +218,11 @@ public class aInventory implements InventoryHolder {
     }
 
     @Internal
-    public aInventory onInventoryClick(@NotNull InventoryClickEvent event) {
+    public void onInventoryClick(@NotNull InventoryClickEvent event) {
         if (requirementFunction != null && !requirementFunction.run(event.getWhoClicked())) {
             event.setCancelled(true);
             event.getWhoClicked().sendMessage(MiniMessage.miniMessage().deserialize(Messages.NO_USE_PERMISSION));
-            return this;
+            return;
         }
 
         if (defaultClickAction != null) {
@@ -224,22 +233,39 @@ public class aInventory implements InventoryHolder {
             clickFunctions.get(event.getSlot()).run(event);
         }
 
-        return this;
+        return;
     }
 
     @Internal
-    public aInventory onInventoryTransfer(@NotNull InventoryClickEvent event) {
+    public void onInventoryTransfer(@NotNull InventoryClickEvent event) {
         if (requirementFunction != null && !requirementFunction.run(event.getWhoClicked())) {
             event.setCancelled(true);
             event.getWhoClicked().sendMessage(MiniMessage.miniMessage().deserialize(Messages.NO_USE_PERMISSION));
-            return this;
+            return;
         }
 
         if (defaultClickAction != null) {
             defaultClickAction.run(event);
         }
 
-        return this;
+        return;
+    }
+
+    @Internal
+    public void onInventoryOpen(@NotNull InventoryOpenEvent event) {
+        if (requirementFunction != null && !requirementFunction.run(event.getPlayer())) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(MiniMessage.miniMessage().deserialize(Messages.NO_USE_PERMISSION));
+            return;
+        }
+        if (openFunction != null) {openFunction.run(event);}
+    }
+
+    @Internal
+    public void onInventoryClose(@NotNull InventoryCloseEvent event) {
+        if (requirementFunction != null && !requirementFunction.run(event.getPlayer())) {return;} // run nothing if player doesn't have permission.
+        if (closeFunction != null) {closeFunction.run(event);}
+        return;
     }
 
     /**
@@ -278,6 +304,8 @@ public class aInventory implements InventoryHolder {
         this.defaultClickAction = builder.defaultClickAction;
         this.initialization = builder.initialization;
         this.requirementFunction = builder.requirementFunction;
+        this.openFunction = builder.openFunction;
+        this.closeFunction = builder.closeFunction;
 
         if (builder.size == null) {
             this.inventory = Bukkit.createInventory(this, INVENTORY_SIZE.CHEST_9x3.size(), builder.title);
@@ -323,11 +351,13 @@ public class aInventory implements InventoryHolder {
      */
     public abstract static class Builder <T extends Builder<T, K>, K extends aInventory> {
         UUID owner;
-        inventoryInitializationFunction initialization;
-        defaultClickAction defaultClickAction;
+        inventoryFunction initialization;
+        itemClickFunction defaultClickAction;
         Integer size;
         Component title;
         requirementFunction requirementFunction;
+        inventoryOpenFunction openFunction;
+        inventoryCloseFunction closeFunction;
 
         // for subclasses to override
         public abstract T getThis();
@@ -341,7 +371,7 @@ public class aInventory implements InventoryHolder {
          * @param fn {@link inventoryInitializationFunction}
          * @return builder
          */
-        public T initialization(inventoryInitializationFunction fn) {
+        public T initialization(inventoryFunction fn) {
             this.initialization = fn;
             return getThis();
         }
@@ -349,11 +379,33 @@ public class aInventory implements InventoryHolder {
         /**
          * Function that will be ran every time inventory is clicked.
          * 
-         * @param fn {@link defaultClickAction}
+         * @param fn {@link itemClickFunction}
          * @return builder
          */
-        public T defaultAction(@NotNull defaultClickAction fn) {
+        public T defaultAction(@NotNull itemClickFunction fn) {
             this.defaultClickAction = fn;
+            return getThis();
+        }
+
+        /**
+         * Inventory open function.
+         * 
+         * @param fn {@link inventoryOpenFunction}
+         * @return builder
+         */
+        public T openFunction(inventoryOpenFunction fn) {
+            this.openFunction = fn;
+            return getThis();
+        }
+
+        /**
+         * Inventory close function.
+         * 
+         * @param fn {@link inventoryCloseFunction}
+         * @return builder
+         */
+        public T closeFunction(inventoryCloseFunction fn) {
+            this.closeFunction = fn;
             return getThis();
         }
 
@@ -463,7 +515,7 @@ public class aInventory implements InventoryHolder {
      */
     public static class aItemBuilder {
         aInventory inventory;
-        itemClickEvent slotFn;
+        itemClickFunction slotFn;
         ItemStack item;
         Set<Integer> slots = new HashSet<>();
         itemReloadFunction reloadFn;
@@ -721,7 +773,7 @@ public class aInventory implements InventoryHolder {
          * @param slotFn {@link itemClickEvent}
          * @return builder
          */
-        public aItemBuilder function(@Nullable itemClickEvent slotFn) {
+        public aItemBuilder function(@Nullable itemClickFunction slotFn) {
             this.slotFn = slotFn;
             return this;
         }
