@@ -1,8 +1,7 @@
 package io.github.viimeinen1.ainventory;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -37,7 +36,7 @@ public class IndexStream {
      */
     private static class IndexedCollection<T> {
         private int i = 0;
-        public final Set<StreamValue<T>> values = new HashSet<>();
+        public final ArrayList<StreamValue<T>> values = new ArrayList<>();
 
         /***
          * Add value to collection.

@@ -23,7 +23,11 @@ dependencies (
 Creating single inventory
 ```java
 
-// basic usage
+/*
+ * Basic usage
+ * 
+ * Code is only showing possible usage of all methods; the code will not work if copied.
+*/
 
 int counter = 0;
 
@@ -32,6 +36,8 @@ aInventory ainventory = aInventory.builder() // create new builder
     .title("<gold>Example inventory") // set inventory title (also accepts components)
     .require(player -> player.isOp() || player.hasPermission("example.admin")) // require player to be OP or have permission "example.admin" to open or use inventory.
     .defaultAction(event -> event.setCancelled(true)) // cancel action every time inventory is clicked (or something is moved to it)
+    .openFunction((event, inv) -> counter++) // add 1 to counter every time inventory is opened
+    .closeFunction((event, inv) -> Bukkit.getScheduler().runTask(plugin, () -> inv.openInventory(event.getPlayer()))) // reopen inventory if it's closed. Forces player to close it using the quit item.
     .initialization(inventory -> { // create initialization function
 
         // Quit item
@@ -153,5 +159,25 @@ agio.initializeInventory(GUI_INVENTORY.CONFIRM_EXIT); // re-run initialization l
 
 // ...
 .function(event -> Bukkit.getScheduler().runTask(plugin, () -> gui.openInventory(GUI_INENTORY.CONFIRM_EXIT, event.getWhoClicked())))
+// ...
+```
+
+IndexStream
+```java
+/*
+ * IndexStream was created for more ease of use in adding collections to inventories.
+*/
+
+Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+
+// ...
+
+IndexStream.toStream(players).limit(9).forEach(entry -> { // create stream with entries [i=index; value=Player]
+    inv.ItemBuilder(entry.index) // Create player heads starting from index 0, up to index 8.
+        .material(Material.PLAYER_HEAD) 
+        .name(entry.value.name(), false)
+        .build();
+});
+
 // ...
 ```

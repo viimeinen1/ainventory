@@ -87,7 +87,7 @@ public class aInventory implements InventoryHolder {
 
     @FunctionalInterface
     public static interface inventoryOpenFunction {
-        void run(InventoryOpenEvent event);
+        void run(InventoryOpenEvent event, aInventory inventory);
     }
 
     /**
@@ -95,7 +95,7 @@ public class aInventory implements InventoryHolder {
      */
     @FunctionalInterface
     public static interface inventoryCloseFunction {
-        void run(InventoryCloseEvent event);
+        void run(InventoryCloseEvent event, aInventory inventory);
     }
 
     /**
@@ -258,13 +258,13 @@ public class aInventory implements InventoryHolder {
             event.getPlayer().sendMessage(MiniMessage.miniMessage().deserialize(Messages.NO_USE_PERMISSION));
             return;
         }
-        if (openFunction != null) {openFunction.run(event);}
+        if (openFunction != null) {openFunction.run(event, this);}
     }
 
     @Internal
     public void onInventoryClose(@NotNull InventoryCloseEvent event) {
         if (requirementFunction != null && !requirementFunction.run(event.getPlayer())) {return;} // run nothing if player doesn't have permission.
-        if (closeFunction != null) {closeFunction.run(event);}
+        if (closeFunction != null) {closeFunction.run(event, this);}
         return;
     }
 
@@ -799,6 +799,11 @@ public class aInventory implements InventoryHolder {
         public aInventory build() {
             inventory.buildItem(this);
             return inventory;
+        }
+
+        public aItemBuilder name(String string) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'name'");
         }
     }
 
