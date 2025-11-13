@@ -15,8 +15,10 @@ public class IndexStream {
      * 
      * Order might be random.
      * 
+     * Indexes will start at 0. Use {@link Stream#limit(long)} to limit the amount of values in the stream.
+     * 
      * Usage:
-     * aValueStream.toStream(collection).forEach(val -> {val.index(); val.value()});
+     * aValueStream.toStream(collection).limit(limit).forEach(val -> {val.index(); val.value()});
      * 
      * @param <T> Collection value type
      * @param collection Collection
