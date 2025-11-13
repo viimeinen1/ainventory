@@ -1,5 +1,5 @@
 group = "io.github.viimeinen1.ainventory"
-version = "1.1.1"
+version = "1.2.0"
 description = "Inventory GUI library"
 
 plugins {
