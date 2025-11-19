@@ -1,4 +1,4 @@
-package io.github.viimeinen1.ainventory;
+package io.github.viimeinen1.ainventory.Common;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -7,6 +7,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+
+import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView;
 
 public class aInventoryListener implements Listener {
     
@@ -14,9 +18,9 @@ public class aInventoryListener implements Listener {
     public static void onInventoryClick(InventoryClickEvent event) {
         Inventory inv = event.getClickedInventory();
         // return if we don't have this plugin's inv
-        if (inv == null || !(inv.getHolder(false) instanceof aInventory inventory)) {
-            if (event.getView().getTopInventory().getHolder(false) instanceof aInventory transferInventory && event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
-                transferInventory.onInventoryTransfer(event);
+        if (inv == null || !(inv.getHolder(false) instanceof AbstractInventoryView inventory)) {
+            if (event.getView().getTopInventory().getHolder(false) instanceof AbstractInventoryView transferInventory && event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
+                transferInventory.onInventoryClick(event);
             }
             return;
         }
@@ -26,7 +30,7 @@ public class aInventoryListener implements Listener {
     @EventHandler
     public static void onInventoryOpen(InventoryOpenEvent event) {
         Inventory inv = event.getInventory();
-        if (!(inv.getHolder(false) instanceof aInventory inventory)) {return;}
+        if (!(inv.getHolder(false) instanceof AbstractInventoryView inventory)) {return;}
         inventory.onInventoryOpen(event);
     }
 
@@ -35,8 +39,18 @@ public class aInventoryListener implements Listener {
         // filter out unrelated actions
         if (event.getReason().equals(InventoryCloseEvent.Reason.PLUGIN) || event.getReason().equals(InventoryCloseEvent.Reason.OPEN_NEW)) {return;}
         Inventory inv = event.getInventory();
-        if (!(inv.getHolder(false) instanceof aInventory inventory)) {return;}
+        if (!(inv.getHolder(false) instanceof AbstractInventoryView inventory)) {return;}
         inventory.onInventoryClose(event);
+    }
+
+    /**
+     * Initialize listener for aInventory.
+     * Without initializing the listener, the click functions will not work.
+     * 
+     * @param plugin {@link JavaPlugin} that the listener will be listed for.
+     */
+    public static void initializeListener(@NotNull JavaPlugin plugin) {
+        plugin.getServer().getPluginManager().registerEvents(new aInventoryListener(), plugin);
     }
 
 }

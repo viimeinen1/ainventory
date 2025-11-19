@@ -1,0 +1,87 @@
+package io.github.viimeinen1.ainventory.Inventory;
+
+import java.util.Optional;
+
+import org.bukkit.entity.HumanEntity;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import io.github.viimeinen1.ainventory.InventoryBuilder.AbstractInventoryBuilder;
+import io.github.viimeinen1.ainventory.InventoryBuilder.AbstractInventoryBuilder.inventoryFunction;
+import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView;
+import io.github.viimeinen1.ainventory.ItemBuilder.AbstractItemBuilder;
+
+// TODO: javadocs
+
+/**
+ * Custom inventory with addinational features like reloading individual slots.
+ */
+public abstract class AbstractInventory <A extends AbstractItemBuilder<A, C>, C extends AbstractInventoryView<A, C>, E extends AbstractInventoryBuilder<A, C, E, F>, F extends AbstractInventory<A, C, E, F>> {
+
+    // /**
+    //  * {@link Inventory} of this aInventory.
+    //  * 
+    //  * Modify this if more control is needed.
+    //  * 
+    //  * Do NOT open the inventory using this reference. 
+    //  * Opening using this will bypass conditional items.
+    //  * use {@link AbstractInventory#openInventory(HumanEntity)} to open the inventory.
+    //  */
+    // public final Inventory inventory;
+    // public final C inventoryView;
+    // protected inventoryFunction<A, F> initialization;
+    // protected final E builder;
+
+    public final E builder;
+    public final inventoryFunction<A, C> initFn;
+    public final C view;
+
+    public abstract F getThis();
+
+    /**
+     * Initialize view from scratch.
+     * 
+     * @return view extending {@link AbstractInventoryView}
+     */
+    public abstract C createView(@Nullable HumanEntity player);
+
+    /**
+     * Create new {@link AbstractInventory}.
+     * 
+     * Prefer {@link AbstractInventory.Builder#build()} to build new inventory.
+     * 
+     * @param builder extends {@link AbstractInventory.Builder}
+     */
+    public AbstractInventory(E builder) {
+        this.builder = builder;
+        this.initFn = builder.initialization;
+        this.view = createView(null);
+    }
+
+    /**
+     * Re-Initialize inventory.
+     * 
+     * Will:
+     * - clear inventory.
+     * - run initialization function again.
+     * - update inventory to all it's viewers.
+     */
+    public void initialize(@Nullable HumanEntity player) {
+        view.clear();
+        initFn.run(view, Optional.ofNullable(player));
+        view.update();
+    }
+
+    public void open(@NotNull HumanEntity player) {
+        view.open(player);
+    }
+
+    public void reload(@Nullable HumanEntity player) {
+        view.reload(player);
+    }
+
+    public void reload(@Nullable HumanEntity player, Integer... slots) {
+        view.reload(player, slots);
+    }
+
+}

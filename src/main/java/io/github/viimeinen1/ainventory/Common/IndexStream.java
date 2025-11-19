@@ -1,4 +1,4 @@
-package io.github.viimeinen1.ainventory;
+package io.github.viimeinen1.ainventory.Common;
 
 import java.util.ArrayList;
 import java.util.Collection;
