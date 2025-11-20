@@ -9,6 +9,7 @@ import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView;
 import io.github.viimeinen1.ainventory.ItemBuilder.AbstractItemBuilder;
 
 // TODO: javadocs
+// TODO: default builders (for exit, next page, last page, etc.)
 
 /**
  * Custom inventory with addinational features like reloading individual slots.
