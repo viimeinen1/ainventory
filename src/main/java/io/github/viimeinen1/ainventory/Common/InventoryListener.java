@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView;
 
-public class aInventoryListener implements Listener {
+public class InventoryListener implements Listener {
     
     @EventHandler
     public static void onInventoryClick(InventoryClickEvent event) {
@@ -50,7 +50,7 @@ public class aInventoryListener implements Listener {
      * @param plugin {@link JavaPlugin} that the listener will be listed for.
      */
     public static void initializeListener(@NotNull JavaPlugin plugin) {
-        plugin.getServer().getPluginManager().registerEvents(new aInventoryListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new InventoryListener(), plugin);
     }
 
 }

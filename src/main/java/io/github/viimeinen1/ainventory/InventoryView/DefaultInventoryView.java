@@ -1,8 +1,10 @@
 package io.github.viimeinen1.ainventory.InventoryView;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +38,7 @@ public final class DefaultInventoryView extends AbstractInventoryView<DefaultIte
     public DefaultInventoryView(
         @NotNull INVENTORY_SIZE size,
         @Nullable Component title,
+        @Nullable inventoryFunction<DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView> initFn,
         @Nullable inventoryOpenFunction openFn,
         @Nullable inventoryCloseFunction closeFn,
         @Nullable requirementFunction requirementFn,
@@ -45,12 +48,23 @@ public final class DefaultInventoryView extends AbstractInventoryView<DefaultIte
         super(
             size,
             title,
+            initFn,
             openFn,
             closeFn,
             requirementFn,
             defaultClickFn,
             owner
         );
+    }
+
+    @Override
+    protected void initPage(Integer page, @Nullable HumanEntity player) {
+        clear();
+        initFn.ifPresent(fn -> fn.run(this, Optional.ofNullable(player)));
+        if (pageInits.containsKey(page)) {
+            pageInits.get(page).run(this, Optional.ofNullable(player));
+        }
+        update();
     }
 
     @Override

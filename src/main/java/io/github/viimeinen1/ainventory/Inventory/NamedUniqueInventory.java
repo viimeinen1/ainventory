@@ -8,24 +8,31 @@ import org.bukkit.entity.HumanEntity;
 import org.jetbrains.annotations.Nullable;
 
 import io.github.viimeinen1.ainventory.InventoryBuilder.DefaultInventoryBuilder;
-import io.github.viimeinen1.ainventory.InventoryBuilder.UniqueInventoryBuilder;
+import io.github.viimeinen1.ainventory.InventoryBuilder.NamedUniqueInventoryBuilder;
 import io.github.viimeinen1.ainventory.InventoryView.DefaultInventoryView;
 import io.github.viimeinen1.ainventory.ItemBuilder.DefaultItemBuilder;
 
-public final class UniqueInventory extends AbstractInventory<DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView, UniqueInventoryBuilder, UniqueInventory> {
-
+public final class NamedUniqueInventory <T extends Enum<T>> extends AbstractNamedInventory<T, DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView, NamedUniqueInventoryBuilder<T>, NamedUniqueInventory<T>> {
+    
     public Map<UUID, DefaultInventoryView> views = new HashMap<>();
 
-    public UniqueInventory(UniqueInventoryBuilder builder) {
+    public NamedUniqueInventory(NamedUniqueInventoryBuilder<T> builder) {
         super(builder);
     }
 
     @Override
     public DefaultInventoryView createView(@Nullable HumanEntity player) {
+        DefaultInventoryView view = new DefaultInventoryView(
+            builder.size,
+            builder.title,
+            builder.initialization,
+            builder.openFunction,
+            builder.closeFunction,
+            builder.requirementFunction,
+            builder.defaultClickAction,
+            builder.owner
+        );
         initialize(player);
-        if (views.containsKey(player.getUniqueId())) {
-            return views.get(player.getUniqueId());
-        }
         return view;
     }
 
@@ -55,7 +62,7 @@ public final class UniqueInventory extends AbstractInventory<DefaultItemBuilder<
     }
 
     @Override
-    public UniqueInventory getThis() {return this;}
+    public NamedUniqueInventory<T> getThis() {return this;}
 
     public static DefaultInventoryBuilder builder() {
         return new DefaultInventoryBuilder();

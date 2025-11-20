@@ -10,7 +10,7 @@ import io.github.viimeinen1.ainventory.ItemBuilder.DefaultItemBuilder;
 /**
  * Default inventory instance
  */
-public class DefaultInventory extends AbstractInventory<DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView, DefaultInventoryBuilder, DefaultInventory> {
+public final class DefaultInventory extends AbstractInventory<DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView, DefaultInventoryBuilder, DefaultInventory> {
 
     public DefaultInventory(DefaultInventoryBuilder builder) {
         super(builder);
@@ -21,6 +21,7 @@ public class DefaultInventory extends AbstractInventory<DefaultItemBuilder<Defau
         DefaultInventoryView view = new DefaultInventoryView(
             builder.size,
             builder.title,
+            builder.initialization,
             builder.openFunction,
             builder.closeFunction,
             builder.requirementFunction,

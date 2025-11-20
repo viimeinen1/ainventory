@@ -1,35 +1,28 @@
 package io.github.viimeinen1.ainventory.InventoryBuilder;
 
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
-import org.bukkit.entity.HumanEntity;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.viimeinen1.ainventory.Inventory.AbstractInventory;
 import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView;
 import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView.INVENTORY_SIZE;
 import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView.inventoryCloseFunction;
+import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView.inventoryFunction;
 import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView.inventoryOpenFunction;
 import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView.itemClickFunction;
 import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView.requirementFunction;
 import io.github.viimeinen1.ainventory.ItemBuilder.AbstractItemBuilder;
-import io.github.viimeinen1.ainventory.ItemBuilder.ItemBuildable;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
 public abstract class AbstractInventoryBuilder <A extends AbstractItemBuilder<A, C>, C extends AbstractInventoryView<A, C>, E extends AbstractInventoryBuilder<A, C, E, F>, F extends AbstractInventory<A, C, E, F>> {
 
-    /**
-     * Generic inventory function.
-     */
-    @FunctionalInterface
-    public static interface inventoryFunction <A extends AbstractItemBuilder<A, B>, B extends ItemBuildable<A, B>> {
-        void run(B aInventory, Optional<HumanEntity> player);
-    }
-
     public UUID owner;
     public inventoryFunction<A, C> initialization;
+    public Map<Integer, inventoryFunction<A, C>> pages = new HashMap<>();
     public itemClickFunction defaultClickAction;
     public INVENTORY_SIZE size = INVENTORY_SIZE.CHEST_9x3;
     public Component title;
@@ -46,11 +39,28 @@ public abstract class AbstractInventoryBuilder <A extends AbstractItemBuilder<A,
      * 
      * The function can be called later with {@link AbstractInventory#initialize()}.
      * 
-     * @param fn {@link inventoryInitializationFunction}
+     * @param fn {@link inventoryFunction}
      * @return builder
      */
     public E initialization(inventoryFunction<A, C> fn) {
         this.initialization = fn;
+        return getThis();
+    }
+
+    /**
+     * Create page for the inventory.
+     * 
+     * Pages are loaded after initialization, so you can modify items set in initialization.
+     * 
+     * You can call {@link AbstractInventoryView#nextPage(org.bukkit.entity.HumanEntity)} and {@link AbstractInventoryView#prevPage(org.bukkit.entity.HumanEntity)}
+     * as long as the pages are next to each other (no skipping pages, use {@link AbstractInventoryView#page(Integer, org.bukkit.entity.HumanEntity)} if you want to jump on page number.)
+     * 
+     * @param page page number
+     * @param fn {@link inventoryFunction}
+     * @return builder
+     */
+    public E page(Integer page, inventoryFunction<A, C> fn) {
+        this.pages.put(page, fn);
         return getThis();
     }
 

@@ -70,6 +70,14 @@ public abstract class AbstractInventoryView <A extends AbstractItemBuilder<A, C>
     }
 
     /**
+     * Generic inventory function.
+     */
+    @FunctionalInterface
+    public static interface inventoryFunction <A extends AbstractItemBuilder<A, B>, B extends ItemBuildable<A, B>> {
+        void run(B aInventory, Optional<HumanEntity> player);
+    }
+
+    /**
      * Possible inventory sizes
      */
     public static enum INVENTORY_SIZE {
@@ -96,19 +104,24 @@ public abstract class AbstractInventoryView <A extends AbstractItemBuilder<A, C>
     }
 
     protected final Inventory inventory;
+    public final Optional<inventoryFunction<A, C>> initFn;
+    protected final Map<Integer, inventoryFunction<A, C>> pageInits = new HashMap<>();
     protected final Map<Integer, itemClickFunction> clickFns = new HashMap<>();
     protected final Map<Integer, itemReloadFunction<A, C>> itemReloads = new HashMap<>();
-    private final Optional<itemClickFunction> defaultClickFn;
-    private final Optional<requirementFunction> requirementFn;
-    private final Optional<inventoryOpenFunction> openFn;
-    private final Optional<inventoryCloseFunction> closeFn;
+    public final Optional<itemClickFunction> defaultClickFn;
+    public final Optional<requirementFunction> requirementFn;
+    public final Optional<inventoryOpenFunction> openFn;
+    public final Optional<inventoryCloseFunction> closeFn;
     public final Optional<UUID> owner;
+
+    private int page = 0;
 
     public Map<Integer, itemClickFunction> clickFns() {return clickFns;}
     public Map<Integer, itemReloadFunction<A, C>> itemReloads() {return itemReloads;}
 
     abstract A ItemBuilder(Integer slot);
     abstract A ItemBuilder(Collection<Integer> slots);
+    protected abstract void initPage(Integer page, HumanEntity player);
 
     /**
      * Create new aInventoryView with all parameters.
@@ -126,6 +139,7 @@ public abstract class AbstractInventoryView <A extends AbstractItemBuilder<A, C>
     public AbstractInventoryView(
         @NotNull INVENTORY_SIZE size,
         @Nullable Component title,
+        @Nullable inventoryFunction<A, C> initFn,
         @Nullable inventoryOpenFunction openFn,
         @Nullable inventoryCloseFunction closeFn,
         @Nullable requirementFunction requirementFn,
@@ -139,6 +153,7 @@ public abstract class AbstractInventoryView <A extends AbstractItemBuilder<A, C>
             this.inventory = Bukkit.createInventory(this, size.size);
         }
 
+        this.initFn = Optional.of(initFn);
         this.openFn = Optional.ofNullable(openFn);
         this.closeFn = Optional.ofNullable(closeFn);
         this.requirementFn = Optional.ofNullable(requirementFn);
@@ -189,6 +204,29 @@ public abstract class AbstractInventoryView <A extends AbstractItemBuilder<A, C>
         inventory.clear();
         clickFns.clear();
         itemReloads.clear();
+    }
+
+    public int page() {return this.page;}
+
+    public void page(Integer page, @Nullable HumanEntity player) {
+        initPage(page, player);
+        this.page = page;
+    }
+
+    public void nextPage(@Nullable HumanEntity player) {
+        if (!pageInits.containsKey(this.page + 1)) {
+            return;
+        }
+        this.page++;
+        initPage(this.page, player);
+    }
+
+    public void prevPage(@Nullable HumanEntity player) {
+        if (!pageInits.containsKey(this.page - 1)) {
+            return;
+        }
+        this.page--;
+        initPage(this.page, player);
     }
 
     @Internal

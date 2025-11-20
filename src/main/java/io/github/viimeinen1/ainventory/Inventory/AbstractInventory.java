@@ -1,13 +1,10 @@
 package io.github.viimeinen1.ainventory.Inventory;
 
-import java.util.Optional;
-
 import org.bukkit.entity.HumanEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import io.github.viimeinen1.ainventory.InventoryBuilder.AbstractInventoryBuilder;
-import io.github.viimeinen1.ainventory.InventoryBuilder.AbstractInventoryBuilder.inventoryFunction;
 import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView;
 import io.github.viimeinen1.ainventory.ItemBuilder.AbstractItemBuilder;
 
@@ -18,22 +15,7 @@ import io.github.viimeinen1.ainventory.ItemBuilder.AbstractItemBuilder;
  */
 public abstract class AbstractInventory <A extends AbstractItemBuilder<A, C>, C extends AbstractInventoryView<A, C>, E extends AbstractInventoryBuilder<A, C, E, F>, F extends AbstractInventory<A, C, E, F>> {
 
-    // /**
-    //  * {@link Inventory} of this aInventory.
-    //  * 
-    //  * Modify this if more control is needed.
-    //  * 
-    //  * Do NOT open the inventory using this reference. 
-    //  * Opening using this will bypass conditional items.
-    //  * use {@link AbstractInventory#openInventory(HumanEntity)} to open the inventory.
-    //  */
-    // public final Inventory inventory;
-    // public final C inventoryView;
-    // protected inventoryFunction<A, F> initialization;
-    // protected final E builder;
-
     public final E builder;
-    public final inventoryFunction<A, C> initFn;
     public final C view;
 
     public abstract F getThis();
@@ -54,7 +36,6 @@ public abstract class AbstractInventory <A extends AbstractItemBuilder<A, C>, C 
      */
     public AbstractInventory(E builder) {
         this.builder = builder;
-        this.initFn = builder.initialization;
         this.view = createView(null);
     }
 
@@ -68,7 +49,7 @@ public abstract class AbstractInventory <A extends AbstractItemBuilder<A, C>, C 
      */
     public void initialize(@Nullable HumanEntity player) {
         view.clear();
-        initFn.run(view, Optional.ofNullable(player));
+        view.page(0, player);
         view.update();
     }
 

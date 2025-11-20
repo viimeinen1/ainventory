@@ -10,9 +10,7 @@ import io.github.viimeinen1.ainventory.ItemBuilder.DefaultItemBuilder;
 /**
  * Inventory that has 'name' for identifying.
  */
-public final class NamedInventory <T extends Enum<?>> extends AbstractInventory<DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView, NamedInventoryBuilder<T>, NamedInventory<T>> {
-
-    public final T name;
+public final class NamedInventory <T extends Enum<T>> extends AbstractNamedInventory<T, DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView, NamedInventoryBuilder<T>, NamedInventory<T>> {
 
     /**
      * Create new {@link AbstractInventory}.
@@ -21,9 +19,8 @@ public final class NamedInventory <T extends Enum<?>> extends AbstractInventory<
      * 
      * @param builder extends {@link AbstractInventory.Builder}
      */
-    public NamedInventory(NamedInventoryBuilder<T> builder, T name) {
+    public NamedInventory(NamedInventoryBuilder<T> builder) {
         super(builder);
-        this.name = name;
     }
 
     @Override
@@ -31,6 +28,7 @@ public final class NamedInventory <T extends Enum<?>> extends AbstractInventory<
         DefaultInventoryView view = new DefaultInventoryView(
             builder.size,
             builder.title,
+            builder.initialization,
             builder.openFunction,
             builder.closeFunction,
             builder.requirementFunction,
@@ -43,7 +41,7 @@ public final class NamedInventory <T extends Enum<?>> extends AbstractInventory<
     @Override
     public NamedInventory<T> getThis() {return this;}
 
-    public static <T extends Enum<?>> NamedInventoryBuilder<T> builder(T name) {
+    public static <T extends Enum<T>> NamedInventoryBuilder<T> builder(T name) {
         return new NamedInventoryBuilder<T>(name);
     }
 
