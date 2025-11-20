@@ -69,6 +69,23 @@ public abstract class AbstractInventoryView <A extends AbstractItemBuilder<A, C>
         void run(A builder, Optional<HumanEntity> player);
     }
 
+    @FunctionalInterface
+    public static interface valuedItemFunction <T, A extends AbstractItemBuilder<A, B>, B extends ItemBuildable<A, B>> {
+        void run(ValuedItemBuilder<T, A, B> builder);
+
+        public static class ValuedItemBuilder <T, A extends AbstractItemBuilder<A, B>, B extends ItemBuildable<A, B>> {
+            final T value;
+            final A builder;
+            final Optional<HumanEntity> player;
+
+            public ValuedItemBuilder(T value, A builder, Optional<HumanEntity> player) {
+                this.value = value;
+                this.builder = builder;
+                this.player = player;
+            }
+        }
+    }
+
     /**
      * Generic inventory function.
      */
@@ -121,6 +138,7 @@ public abstract class AbstractInventoryView <A extends AbstractItemBuilder<A, C>
 
     abstract A ItemBuilder(Integer slot);
     abstract A ItemBuilder(Collection<Integer> slots);
+    abstract <T> void PagedItemList(Collection<Integer> slots, Collection<T> values, @Nullable HumanEntity player, valuedItemFunction<T, A, C> fn);
     protected abstract void initPage(Integer page, HumanEntity player);
 
     /**
