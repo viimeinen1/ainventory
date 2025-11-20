@@ -78,7 +78,7 @@ public final class DefaultInventoryView extends AbstractInventoryView<DefaultIte
     }
 
     @Override
-    DefaultItemBuilder<DefaultInventoryView> ItemBuilder(Collection<Integer> slots) {
+    public DefaultItemBuilder<DefaultInventoryView> ItemBuilder(Collection<Integer> slots) {
         return new DefaultItemBuilder<DefaultInventoryView>(this, slots);
     }
 

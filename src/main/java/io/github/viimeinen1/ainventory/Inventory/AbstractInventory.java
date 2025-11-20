@@ -10,6 +10,7 @@ import io.github.viimeinen1.ainventory.ItemBuilder.AbstractItemBuilder;
 
 // TODO: javadocs
 // TODO: default builders (for exit, next page, last page, etc.)
+// TODO: proofread all functionality...
 
 /**
  * Custom inventory with addinational features like reloading individual slots.
@@ -48,6 +49,18 @@ public abstract class AbstractInventory <A extends AbstractItemBuilder<A, C>, C 
      * - run initialization function again.
      * - update inventory to all it's viewers.
      */
+    public void initialize() {
+        initialize(null);
+    }
+
+    /**
+     * Re-Initialize inventory.
+     * 
+     * Will:
+     * - clear inventory.
+     * - run initialization function again.
+     * - update inventory to all it's viewers.
+     */
     public void initialize(@Nullable HumanEntity player) {
         view.clear();
         view.page(0, player);
@@ -58,8 +71,16 @@ public abstract class AbstractInventory <A extends AbstractItemBuilder<A, C>, C 
         view.open(player);
     }
 
+    public void reload() {
+        view.reload();
+    }
+
     public void reload(@Nullable HumanEntity player) {
         view.reload(player);
+    }
+
+    public void reload(Integer... slots) {
+        reload(null, slots);
     }
 
     public void reload(@Nullable HumanEntity player, Integer... slots) {

@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.bukkit.entity.HumanEntity;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import io.github.viimeinen1.ainventory.Inventory.AbstractNamedInventory;
 import io.github.viimeinen1.ainventory.Inventory.NamedInventory;
@@ -68,6 +69,30 @@ public abstract class AbstractGUI <T extends Enum<T>, A extends AbstractItemBuil
      */
     public Optional<F> get(@NotNull T name) {
         return Optional.ofNullable(inventories.get(name));
+    }
+
+    public void initialize(@NotNull T name) {
+        initialize(name, null);
+    }
+
+    public void initialize(@NotNull T name, @Nullable HumanEntity player) {
+        get(name).ifPresent(inv -> inv.initialize(player));
+    }
+
+    public void reload(@NotNull T name) {
+        get(name).ifPresent(inv -> inv.reload());
+    }
+
+    public void reload(@NotNull T name, @Nullable HumanEntity player) {
+        get(name).ifPresent(inv -> inv.reload(player));
+    }
+
+    public void reload(@NotNull T name, Integer... slots) {
+        reload(name, null, slots);
+    }
+
+    public void reload(@NotNull T name, @Nullable HumanEntity player, Integer... slots) {
+        get(name).ifPresent(inv -> inv.reload(player, slots));
     }
 
 }

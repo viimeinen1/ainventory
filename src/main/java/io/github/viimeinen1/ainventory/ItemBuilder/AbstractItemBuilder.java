@@ -58,6 +58,8 @@ public abstract class AbstractItemBuilder <A extends AbstractItemBuilder<A, B>, 
     public AbstractItemBuilder(@NotNull B inventory, @NotNull int slot) {
         this.inventory = inventory;
         this.slots.add(slot);
+        this.slotFn = inventory.clickFns().get(slot);
+        this.reloadFn = inventory.itemReloads().get(slot);
         this.item = inventory.getInventory().getItem(slot);
         if (this.item == null) {
             this.item = ItemStack.of(Material.AIR);
@@ -79,7 +81,10 @@ public abstract class AbstractItemBuilder <A extends AbstractItemBuilder<A, B>, 
     public AbstractItemBuilder(@NotNull B inventory, @NotNull Collection<Integer> slots) {
         this.inventory = inventory;
         this.slots.addAll(slots);
-        this.item = inventory.getInventory().getItem(slots.iterator().next());
+        Integer first = slots.iterator().next();
+        this.slotFn = inventory.clickFns().get(first);
+        this.reloadFn = inventory.itemReloads().get(first);
+        this.item = inventory.getInventory().getItem(first);
         if (this.item == null) {
             this.item = ItemStack.of(Material.AIR);
         } else {

@@ -193,11 +193,22 @@ public abstract class AbstractInventoryView <A extends AbstractItemBuilder<A, C>
         return;
     }
 
+    public void reload() {
+        itemReloads.forEach((slot, fn) -> {
+            fn.run(ItemBuilder(slot), Optional.empty());
+        });
+        update();
+    }
+
     public void reload(@Nullable HumanEntity player) {
         itemReloads.forEach((slot, fn) -> {
             fn.run(ItemBuilder(slot), Optional.ofNullable(player));
         });
         update();
+    }
+
+    public void reload(@NotNull Integer... slots) {
+        reload(null, slots);
     }
 
     public void reload(@Nullable HumanEntity player, @NotNull Integer... slots) {
@@ -222,6 +233,14 @@ public abstract class AbstractInventoryView <A extends AbstractItemBuilder<A, C>
         inventory.clear();
         clickFns.clear();
         itemReloads.clear();
+    }
+
+    public void initialize() {
+        initialize(null);
+    }
+
+    public void initialize(@Nullable HumanEntity player) {
+        page(this.page, player);
     }
 
     public int page() {return this.page;}
