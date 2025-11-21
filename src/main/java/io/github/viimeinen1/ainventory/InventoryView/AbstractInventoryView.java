@@ -74,13 +74,15 @@ public abstract class AbstractInventoryView <A extends AbstractItemBuilder<A, C>
         void run(ValuedItemBuilder<T, A, B> builder);
 
         public static class ValuedItemBuilder <T, A extends AbstractItemBuilder<A, B>, B extends ItemBuildable<A, B>> {
-            final T value;
-            final A builder;
-            final Optional<HumanEntity> player;
+            public final T value;
+            public final A builder;
+            public final int slot;
+            public final Optional<HumanEntity> player;
 
-            public ValuedItemBuilder(T value, A builder, Optional<HumanEntity> player) {
+            public ValuedItemBuilder(T value, A builder, int slot, Optional<HumanEntity> player) {
                 this.value = value;
                 this.builder = builder;
+                this.slot = slot;
                 this.player = player;
             }
         }
@@ -122,7 +124,7 @@ public abstract class AbstractInventoryView <A extends AbstractItemBuilder<A, C>
 
     protected final Inventory inventory;
     public final Optional<inventoryFunction<A, C>> initFn;
-    protected final Map<Integer, inventoryFunction<A, C>> pageInits = new HashMap<>();
+    protected final Map<Integer, inventoryFunction<A, C>> pageInits;
     protected final Map<Integer, itemClickFunction> clickFns = new HashMap<>();
     protected final Map<Integer, itemReloadFunction<A, C>> itemReloads = new HashMap<>();
     public final Optional<itemClickFunction> defaultClickFn;
@@ -162,7 +164,8 @@ public abstract class AbstractInventoryView <A extends AbstractItemBuilder<A, C>
         @Nullable inventoryCloseFunction closeFn,
         @Nullable requirementFunction requirementFn,
         @Nullable itemClickFunction defaultClickFn,
-        @Nullable UUID owner
+        @Nullable UUID owner,
+        @Nullable Map<Integer, inventoryFunction<A, C>> pageInits
     ) {
 
         if (title != null) {
@@ -177,6 +180,12 @@ public abstract class AbstractInventoryView <A extends AbstractItemBuilder<A, C>
         this.requirementFn = Optional.ofNullable(requirementFn);
         this.defaultClickFn = Optional.ofNullable(defaultClickFn);
         this.owner = Optional.ofNullable(owner);
+
+        if (pageInits == null) {
+            this.pageInits = new HashMap<>();
+        } else {
+            this.pageInits = pageInits;
+        }
     }
 
     public void open(@NotNull HumanEntity player) {

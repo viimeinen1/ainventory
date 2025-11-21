@@ -24,6 +24,7 @@ public class GUI <T extends Enum<T>> extends AbstractGUI<T, DefaultItemBuilder<D
     /**
      * Inventory builder.
      */
+    @Override
     public NamedInventoryBuilder<T> builder(T name) {return new NamedInventoryBuilder<T>(name);}
 
 }

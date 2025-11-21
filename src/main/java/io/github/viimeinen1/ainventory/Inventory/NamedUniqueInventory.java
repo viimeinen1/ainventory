@@ -7,22 +7,25 @@ import java.util.UUID;
 import org.bukkit.entity.HumanEntity;
 import org.jetbrains.annotations.Nullable;
 
-import io.github.viimeinen1.ainventory.InventoryBuilder.DefaultInventoryBuilder;
+import io.github.viimeinen1.ainventory.Common.Named;
 import io.github.viimeinen1.ainventory.InventoryBuilder.NamedUniqueInventoryBuilder;
 import io.github.viimeinen1.ainventory.InventoryView.DefaultInventoryView;
-import io.github.viimeinen1.ainventory.ItemBuilder.DefaultItemBuilder;
 
-public final class NamedUniqueInventory <T extends Enum<T>> extends AbstractNamedInventory<T, DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView, NamedUniqueInventoryBuilder<T>, NamedUniqueInventory<T>> {
+public final class NamedUniqueInventory <T extends Enum<T>> extends UniqueInventory implements Named<T> {
     
+    private final T name;
+    public T name() {return name;}
+
     public Map<UUID, DefaultInventoryView> views = new HashMap<>();
 
     public NamedUniqueInventory(NamedUniqueInventoryBuilder<T> builder) {
         super(builder);
+        this.name = builder.name();
     }
 
     @Override
-    public DefaultInventoryView createView(@Nullable HumanEntity player) {
-        DefaultInventoryView view = new DefaultInventoryView(
+    public DefaultInventoryView createView() {
+        return new DefaultInventoryView(
             builder.size,
             builder.title,
             builder.initialization,
@@ -30,10 +33,9 @@ public final class NamedUniqueInventory <T extends Enum<T>> extends AbstractName
             builder.closeFunction,
             builder.requirementFunction,
             builder.defaultClickAction,
-            builder.owner
+            builder.owner,
+            builder.pages
         );
-        initialize(player);
-        return view;
     }
 
     @Override
@@ -45,16 +47,7 @@ public final class NamedUniqueInventory <T extends Enum<T>> extends AbstractName
         if (!views.containsKey(player.getUniqueId())) {
             views.put(
                 player.getUniqueId(), 
-                new DefaultInventoryView(
-                    builder.size,
-                    builder.title,
-                    builder.initialization,
-                    builder.openFunction,
-                    builder.closeFunction,
-                    builder.requirementFunction,
-                    builder.defaultClickAction,
-                    builder.owner
-                )
+                createView()
             );
         }
 
@@ -64,8 +57,8 @@ public final class NamedUniqueInventory <T extends Enum<T>> extends AbstractName
     @Override
     public NamedUniqueInventory<T> getThis() {return this;}
 
-    public static DefaultInventoryBuilder builder() {
-        return new DefaultInventoryBuilder();
+    public static <T extends Enum<T>> NamedUniqueInventoryBuilder<T> builder(T name) {
+        return new NamedUniqueInventoryBuilder<T>(name);
     }
 
 }

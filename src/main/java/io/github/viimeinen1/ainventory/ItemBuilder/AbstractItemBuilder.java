@@ -30,16 +30,22 @@ public abstract class AbstractItemBuilder <A extends AbstractItemBuilder<A, B>, 
     ItemStack item;
     Set<Integer> slots = new HashSet<>();
     itemReloadFunction<A, B> reloadFn;
-    boolean removeReloadFunction = false;
-    boolean removeSlotFuntion = false;
 
     // for subclasses to override
     public abstract A getThis();
 
     public B build() {
         slots.forEach(slot -> {
-            inventory.clickFns().put(slot, slotFn);
-            inventory.itemReloads().put(slot, reloadFn);
+            if (slotFn != null) {
+                inventory.clickFns().put(slot, slotFn);
+            } else {
+                inventory.clickFns().remove(slot);
+            }
+            if (reloadFn != null) {
+                inventory.itemReloads().put(slot, reloadFn);
+            } else {
+                inventory.itemReloads().remove(slot);
+            }
             inventory.getInventory().setItem(slot, item);
         });
         return inventory;
@@ -191,8 +197,6 @@ public abstract class AbstractItemBuilder <A extends AbstractItemBuilder<A, B>, 
         item = ItemStack.of(Material.AIR);
         slotFn = null;
         reloadFn = null;
-        removeReloadFunction = true;
-        removeSlotFuntion = true;
         return getThis();
     }
 

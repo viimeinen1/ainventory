@@ -1,8 +1,5 @@
 package io.github.viimeinen1.ainventory.Inventory;
 
-import org.bukkit.entity.HumanEntity;
-import org.jetbrains.annotations.Nullable;
-
 import io.github.viimeinen1.ainventory.InventoryBuilder.DefaultInventoryBuilder;
 import io.github.viimeinen1.ainventory.InventoryView.DefaultInventoryView;
 import io.github.viimeinen1.ainventory.ItemBuilder.DefaultItemBuilder;
@@ -17,8 +14,8 @@ public final class DefaultInventory extends AbstractInventory<DefaultItemBuilder
     }
 
     @Override
-    public DefaultInventoryView createView(@Nullable HumanEntity player) {
-        DefaultInventoryView view = new DefaultInventoryView(
+    public DefaultInventoryView createView() {
+        return new DefaultInventoryView(
             builder.size,
             builder.title,
             builder.initialization,
@@ -26,9 +23,9 @@ public final class DefaultInventory extends AbstractInventory<DefaultItemBuilder
             builder.closeFunction,
             builder.requirementFunction,
             builder.defaultClickAction,
-            builder.owner);
-        initialize(player);
-        return view;
+            builder.owner,
+            builder.pages
+        );
     }
 
     @Override

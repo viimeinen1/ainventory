@@ -1,8 +1,6 @@
 package io.github.viimeinen1.ainventory.Inventory;
 
-import org.bukkit.entity.HumanEntity;
-import org.jetbrains.annotations.Nullable;
-
+import io.github.viimeinen1.ainventory.Common.Named;
 import io.github.viimeinen1.ainventory.InventoryBuilder.NamedInventoryBuilder;
 import io.github.viimeinen1.ainventory.InventoryView.DefaultInventoryView;
 import io.github.viimeinen1.ainventory.ItemBuilder.DefaultItemBuilder;
@@ -10,7 +8,10 @@ import io.github.viimeinen1.ainventory.ItemBuilder.DefaultItemBuilder;
 /**
  * Inventory that has 'name' for identifying.
  */
-public final class NamedInventory <T extends Enum<T>> extends AbstractNamedInventory<T, DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView, NamedInventoryBuilder<T>, NamedInventory<T>> {
+public final class NamedInventory <T extends Enum<T>> extends AbstractInventory<DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView, NamedInventoryBuilder<T>, NamedInventory<T>> implements Named<T> {
+
+    private final T name;
+    public T name() {return name;}
 
     /**
      * Create new {@link AbstractInventory}.
@@ -21,11 +22,12 @@ public final class NamedInventory <T extends Enum<T>> extends AbstractNamedInven
      */
     public NamedInventory(NamedInventoryBuilder<T> builder) {
         super(builder);
+        this.name = builder.name();
     }
 
     @Override
-    public DefaultInventoryView createView(@Nullable HumanEntity player) {
-        DefaultInventoryView view = new DefaultInventoryView(
+    public DefaultInventoryView createView() {
+        return new DefaultInventoryView(
             builder.size,
             builder.title,
             builder.initialization,
@@ -33,9 +35,9 @@ public final class NamedInventory <T extends Enum<T>> extends AbstractNamedInven
             builder.closeFunction,
             builder.requirementFunction,
             builder.defaultClickAction,
-            builder.owner);
-        initialize(player);
-        return view;
+            builder.owner,
+            builder.pages
+        );
     }
 
     @Override

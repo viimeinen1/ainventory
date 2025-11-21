@@ -9,16 +9,17 @@ import org.bukkit.entity.HumanEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import io.github.viimeinen1.ainventory.Inventory.AbstractNamedInventory;
+import io.github.viimeinen1.ainventory.Common.Named;
+import io.github.viimeinen1.ainventory.Inventory.AbstractInventory;
 import io.github.viimeinen1.ainventory.Inventory.NamedInventory;
-import io.github.viimeinen1.ainventory.InventoryBuilder.AbstractNamedInventoryBuilder;
+import io.github.viimeinen1.ainventory.InventoryBuilder.AbstractInventoryBuilder;
 import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView;
 import io.github.viimeinen1.ainventory.ItemBuilder.AbstractItemBuilder;
 
-public abstract class AbstractGUI <T extends Enum<T>, A extends AbstractItemBuilder<A, C>, C extends AbstractInventoryView<A, C>, E extends AbstractNamedInventoryBuilder<T, A, C, E, F>, F extends AbstractNamedInventory<T, A, C, E, F>> {
+public abstract class AbstractGUI <T extends Enum<T>, A extends AbstractItemBuilder<A, C>, C extends AbstractInventoryView<A, C>, E extends AbstractInventoryBuilder<A, C, E, F> & Named<T>, F extends AbstractInventory<A, C, E, F> & Named<T>> {
 
     @FunctionalInterface
-    public static interface GUIInventoryGetter <T extends Enum<T>, A extends AbstractItemBuilder<A, C>, C extends AbstractInventoryView<A, C>, E extends AbstractNamedInventoryBuilder<T, A, C, E, F>, F extends AbstractNamedInventory<T, A, C, E, F>> {
+    public static interface GUIInventoryGetter <T extends Enum<T>, A extends AbstractItemBuilder<A, C>, C extends AbstractInventoryView<A, C>, E extends AbstractInventoryBuilder<A, C, E, F> & Named<T>, F extends AbstractInventory<A, C, E, F> & Named<T>> {
         public F build(E builder);
     }
 
@@ -43,7 +44,7 @@ public abstract class AbstractGUI <T extends Enum<T>, A extends AbstractItemBuil
      */
     public @NotNull F put(@NotNull T name, @NotNull GUIInventoryGetter<T, A, C, E, F> fn) {
         F inventory = fn.build(builder(name));
-        inventories.put(inventory.name, inventory);
+        inventories.put(inventory.name(), inventory);
         return inventory;
     }
 

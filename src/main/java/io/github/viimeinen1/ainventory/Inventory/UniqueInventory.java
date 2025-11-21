@@ -5,14 +5,14 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.entity.HumanEntity;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import io.github.viimeinen1.ainventory.InventoryBuilder.DefaultInventoryBuilder;
 import io.github.viimeinen1.ainventory.InventoryBuilder.UniqueInventoryBuilder;
 import io.github.viimeinen1.ainventory.InventoryView.DefaultInventoryView;
 import io.github.viimeinen1.ainventory.ItemBuilder.DefaultItemBuilder;
 
-public final class UniqueInventory extends AbstractInventory<DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView, UniqueInventoryBuilder, UniqueInventory> {
+public class UniqueInventory extends AbstractInventory<DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView, UniqueInventoryBuilder, UniqueInventory> {
 
     public Map<UUID, DefaultInventoryView> views = new HashMap<>();
 
@@ -21,33 +21,33 @@ public final class UniqueInventory extends AbstractInventory<DefaultItemBuilder<
     }
 
     @Override
-    public DefaultInventoryView createView(@Nullable HumanEntity player) {
-        initialize(player);
-        if (views.containsKey(player.getUniqueId())) {
-            return views.get(player.getUniqueId());
-        }
-        return view;
+    public DefaultInventoryView createView() {
+        return new DefaultInventoryView(
+            builder.size,
+            builder.title,
+            builder.initialization,
+            builder.openFunction,
+            builder.closeFunction,
+            builder.requirementFunction,
+            builder.defaultClickAction,
+            builder.owner,
+            builder.pages
+        );
     }
 
     @Override
     public void initialize(@Nullable HumanEntity player) {
         if (player == null) {
+            views.values().forEach(view -> {
+                view.initialize();
+            });
             return;
         }
 
         if (!views.containsKey(player.getUniqueId())) {
             views.put(
                 player.getUniqueId(), 
-                new DefaultInventoryView(
-                    builder.size,
-                    builder.title,
-                    builder.initialization,
-                    builder.openFunction,
-                    builder.closeFunction,
-                    builder.requirementFunction,
-                    builder.defaultClickAction,
-                    builder.owner
-                )
+                createView()
             );
         }
 
@@ -57,8 +57,36 @@ public final class UniqueInventory extends AbstractInventory<DefaultItemBuilder<
     @Override
     public UniqueInventory getThis() {return this;}
 
-    public static DefaultInventoryBuilder builder() {
-        return new DefaultInventoryBuilder();
+    @Override
+    public void open(@NotNull HumanEntity player) {
+        if (!views.containsKey(player.getUniqueId())) {
+
+        }
+        view.open(player);
+    }
+
+    @Override
+    public void reload() {
+        view.reload();
+    }
+
+    @Override
+    public void reload(@Nullable HumanEntity player) {
+        view.reload(player);
+    }
+
+    @Override
+    public void reload(Integer... slots) {
+        reload(null, slots);
+    }
+
+    @Override
+    public void reload(@Nullable HumanEntity player, Integer... slots) {
+        view.reload(player, slots);
+    }
+
+    public static UniqueInventoryBuilder builder() {
+        return new UniqueInventoryBuilder();
     }
 
 }

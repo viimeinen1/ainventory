@@ -1,6 +1,7 @@
 package io.github.viimeinen1.ainventory.InventoryView;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -45,7 +46,8 @@ public final class DefaultInventoryView extends AbstractInventoryView<DefaultIte
         @Nullable inventoryCloseFunction closeFn,
         @Nullable requirementFunction requirementFn,
         @Nullable itemClickFunction defaultClickFn,
-        @Nullable UUID owner
+        @Nullable UUID owner,
+        @Nullable Map<Integer, inventoryFunction<DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView>> pageInits
     ) {
         super(
             size,
@@ -55,7 +57,8 @@ public final class DefaultInventoryView extends AbstractInventoryView<DefaultIte
             closeFn,
             requirementFn,
             defaultClickFn,
-            owner
+            owner,
+            pageInits
         );
     }
 
@@ -63,7 +66,7 @@ public final class DefaultInventoryView extends AbstractInventoryView<DefaultIte
     protected void initPage(Integer page, @Nullable HumanEntity player) {
         clear();
         initFn.ifPresent(fn -> fn.run(this, Optional.ofNullable(player)));
-        if (pageInits.containsKey(page)) {
+        if (pageInits.containsKey(page) && pageInits.get(page) != null) {
             pageInits.get(page).run(this, Optional.ofNullable(player));
         }
         update();
@@ -91,7 +94,7 @@ public final class DefaultInventoryView extends AbstractInventoryView<DefaultIte
                 return;
             }
 
-            fn.run(new ValuedItemBuilder<T,DefaultItemBuilder<DefaultInventoryView>,DefaultInventoryView>(entry.getValue(), new DefaultItemBuilder<>(this, entry.getKey().slot()), Optional.ofNullable(player)));
+            fn.run(new ValuedItemBuilder<T,DefaultItemBuilder<DefaultInventoryView>,DefaultInventoryView>(entry.getValue(), new DefaultItemBuilder<>(this, entry.getKey().slot()), entry.getKey().slot(), Optional.ofNullable(player)));
         });
     }
     

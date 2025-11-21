@@ -1,13 +1,16 @@
 package io.github.viimeinen1.ainventory.InventoryBuilder;
 
+import io.github.viimeinen1.ainventory.Common.Named;
 import io.github.viimeinen1.ainventory.Inventory.NamedUniqueInventory;
-import io.github.viimeinen1.ainventory.InventoryView.DefaultInventoryView;
-import io.github.viimeinen1.ainventory.ItemBuilder.DefaultItemBuilder;
 
-public class NamedUniqueInventoryBuilder <T extends Enum<T>> extends AbstractNamedInventoryBuilder<T, DefaultItemBuilder<DefaultInventoryView>, DefaultInventoryView, NamedUniqueInventoryBuilder<T>, NamedUniqueInventory<T>> {
+public class NamedUniqueInventoryBuilder <T extends Enum<T>> extends UniqueInventoryBuilder implements Named<T> {
     
+    private final T name;
+    public T name() {return name;}
+
     public NamedUniqueInventoryBuilder(T name) {
-        super(name);
+        super();
+        this.name = name;
     }
 
     @Override

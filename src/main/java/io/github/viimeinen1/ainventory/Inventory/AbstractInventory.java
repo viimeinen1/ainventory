@@ -10,7 +10,8 @@ import io.github.viimeinen1.ainventory.ItemBuilder.AbstractItemBuilder;
 
 // TODO: javadocs
 // TODO: default builders (for exit, next page, last page, etc.)
-// TODO: proofread all functionality...
+// TODO: making sure unique inventories can all be reloaded (so that global changes apply)
+// TODO: gui that accepts multiple types of inventories
 
 /**
  * Custom inventory with addinational features like reloading individual slots.
@@ -27,7 +28,7 @@ public abstract class AbstractInventory <A extends AbstractItemBuilder<A, C>, C 
      * 
      * @return view extending {@link AbstractInventoryView}
      */
-    public abstract C createView(@Nullable HumanEntity player);
+    public abstract C createView();
 
     /**
      * Create new {@link AbstractInventory}.
@@ -38,7 +39,8 @@ public abstract class AbstractInventory <A extends AbstractItemBuilder<A, C>, C 
      */
     public AbstractInventory(E builder) {
         this.builder = builder;
-        this.view = createView(null);
+        this.view = createView();
+        this.view.page(0, null);
     }
 
     /**
@@ -62,9 +64,9 @@ public abstract class AbstractInventory <A extends AbstractItemBuilder<A, C>, C 
      * - update inventory to all it's viewers.
      */
     public void initialize(@Nullable HumanEntity player) {
-        view.clear();
-        view.page(0, player);
-        view.update();
+        this.view.clear();
+        this.view.page(0, player);
+        this.view.update();
     }
 
     public void open(@NotNull HumanEntity player) {
