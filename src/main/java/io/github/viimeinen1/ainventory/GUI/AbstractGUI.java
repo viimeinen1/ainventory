@@ -16,7 +16,13 @@ import io.github.viimeinen1.ainventory.InventoryBuilder.AbstractInventoryBuilder
 import io.github.viimeinen1.ainventory.InventoryView.AbstractInventoryView;
 import io.github.viimeinen1.ainventory.ItemBuilder.AbstractItemBuilder;
 
-public abstract class AbstractGUI <T extends Enum<T>, A extends AbstractItemBuilder<A, C>, C extends AbstractInventoryView<A, C>, E extends AbstractInventoryBuilder<A, C, E, F> & Named<T>, F extends AbstractInventory<A, C, E, F> & Named<T>> {
+public abstract class AbstractGUI <
+        T extends Enum<T>, 
+        A extends AbstractItemBuilder<A, C>, 
+        C extends AbstractInventoryView<A, C>, 
+        E extends AbstractInventoryBuilder<A, C, E, F> & Named<T>, 
+        F extends AbstractInventory<A, C, E, F> & Named<T>
+    > {
 
     @FunctionalInterface
     public static interface GUIInventoryGetter <T extends Enum<T>, A extends AbstractItemBuilder<A, C>, C extends AbstractInventoryView<A, C>, E extends AbstractInventoryBuilder<A, C, E, F> & Named<T>, F extends AbstractInventory<A, C, E, F> & Named<T>> {

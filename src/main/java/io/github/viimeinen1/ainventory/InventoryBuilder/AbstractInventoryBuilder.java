@@ -18,7 +18,12 @@ import io.github.viimeinen1.ainventory.ItemBuilder.AbstractItemBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
-public abstract class AbstractInventoryBuilder <A extends AbstractItemBuilder<A, C>, C extends AbstractInventoryView<A, C>, E extends AbstractInventoryBuilder<A, C, E, F>, F extends AbstractInventory<A, C, E, F>> {
+public abstract class AbstractInventoryBuilder <
+        A extends AbstractItemBuilder<A, C>, 
+        C extends AbstractInventoryView<A, C>, 
+        E extends AbstractInventoryBuilder<A, C, E, F>, 
+        F extends AbstractInventory<A, C, E, F>
+    > {
 
     public UUID owner;
     public inventoryFunction<A, C> initialization;
